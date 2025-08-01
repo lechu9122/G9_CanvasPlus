@@ -1,0 +1,1 @@
+console.log("CanvasPlus initial test file");
