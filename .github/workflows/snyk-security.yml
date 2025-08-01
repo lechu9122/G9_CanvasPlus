@@ -35,7 +35,7 @@ jobs:
 
       - name: Snyk Code (SAST)
         run: |
-          snyk code test --sarif > snyk-code.sarif || echo "{}" > snyk-code.sarif
+          snyk code test --sarif-file-output=snyk-code.sarif || echo '{"version":"2.1.0","runs":[]}' > snyk-code.sarif
 
       - name: Snyk Open Source (Dependencies)
         run: snyk monitor --all-projects || true
