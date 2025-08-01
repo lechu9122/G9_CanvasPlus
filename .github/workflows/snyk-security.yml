@@ -37,6 +37,12 @@ jobs:
         run: |
           snyk code test --sarif-file-output=snyk-code.sarif || echo '{"version":"2.1.0","runs":[]}' > snyk-code.sarif
 
+      - name: Debug SARIF content
+        run: cat snyk-code.sarif
+
+      - name: Run Snyk without SARIF (debug)
+        run: snyk code test || true
+
       - name: Snyk Open Source (Dependencies)
         run: snyk monitor --all-projects || true
 
