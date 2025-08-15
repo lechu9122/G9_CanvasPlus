@@ -27,7 +27,6 @@ import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Map;
 
 public class CliCalendarApp {
     private static final JsonFactory JSON = GsonFactory.getDefaultInstance();
