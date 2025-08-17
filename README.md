@@ -8,15 +8,11 @@ that the UI and API can be developed and deployed together.
 
 ## Repository structure
 
-  -----------------------------------------------------------------------
-  Path                                Purpose
-  ----------------------------------- -----------------------------------
-  `client/`                           React/Vite front‑end source
-
-  `server/`                           Spring Boot back‑end source
-
-`.gitignore`                        Ignore rules
-  -----------------------------------------------------------------------
+| Path         | Purpose                     |
+| ------------ | --------------------------- |
+| `client/`    | React/Vite front‑end source |
+| `server/`    | Spring Boot back‑end source |
+| `.gitignore` | Ignore rules                |
 
 ### Client
 
