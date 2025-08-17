@@ -6,6 +6,7 @@ homepage for managing study schedules. The project has been restructured
 into a **monorepo** with separate front‑end and back‑end subprojects so
 that the UI and API can be developed and deployed together.
 
+This project is associated with the University of Auckland SOFTENG 310.
 ## Repository structure
 
 | Path         | Purpose                     |
@@ -137,5 +138,11 @@ Please fork this repository and submit pull requests. When contributing
 code, follow the existing project structure: UI work goes in `client`,
 server work goes in `server`, and update this README if you introduce
 new scripts or configuration.
+
+Checkout the CONTRIBUTING.md for more information.
+
+## License
+
+This project is licensed under the MIT License. See the included LICENSE file for details.
 
 ------------------------------------------------------------------------

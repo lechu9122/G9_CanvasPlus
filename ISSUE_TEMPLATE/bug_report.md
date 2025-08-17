@@ -1,17 +1,18 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
-assignees: ''
-
+name: "Bug report"
+about: "Report a reproducible bug in CanvasPlus"
+title: "[BUG] "
+labels: ["bug"]
+assignees: []
 ---
 
+# Bug Report
+
 **Describe the bug**
-A clear and concise description of what the bug is.
+A clear and concise description of the problem. What did you expect to happen?
 
 **To Reproduce**
-Steps to reproduce the behavior:
+Steps to reproduce the behavior (provide minimal, exact steps):
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
@@ -20,8 +21,8 @@ Steps to reproduce the behavior:
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Screenshots / Logs**
+If applicable, add screenshots, copy-paste error messages, stack traces, or API responses here. Use code blocks for logs:
 
 **Desktop (please complete the following information):**
  - OS: [e.g. iOS]
