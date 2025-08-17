@@ -1,0 +1,15 @@
+{
+  "name": "canvasplus-monorepo",
+  "private": true,
+  "scripts": {
+    "start:backend": "bash -c 'cd server && export $(grep -v \"^#\" .env | xargs) && ./mvnw spring-boot:run'",
+    "start:client": "npm --workspace client run dev",
+    "start": "concurrently \"npm run start:client\" \"npm run start:backend\""
+  },
+  "workspaces": [
+    "client"
+  ],
+  "devDependencies": {
+    "concurrently": "9.2.0"
+  }
+}
