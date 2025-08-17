@@ -9,25 +9,64 @@ const GridCtx = createContext(null);
  * WidgetGrid
  * Props:
  *  - cols, rows            (number of cells)
- *  - cellW, rowH, gap      (px)
+ *  - gap                   (px)
  *  - showGrid              (bool)
  *  - className, style
+ *  - maxCellWidth          (optional max width for cells)
+ *  - maxCellHeight         (optional max height for cells)
  */
 export default function WidgetGrid({
   cols = 12,
   rows = 8,
-  cellW = 96,
-  rowH = 96,
   gap = 16,
   showGrid = true,
   className = "",
   style = {},
+  maxCellWidth,
+  maxCellHeight,
   children,
 }) {
   const gridRef = useRef(null);
+  const [dimensions, setDimensions] = useState({ cellW: 0, rowH: 0 });
 
-  const gridW = cols * cellW + (cols - 1) * gap;
-  const gridH = rows * rowH + (rows - 1) * gap;
+  // Calculate cell dimensions based on available space
+  useEffect(() => {
+    const calculateDimensions = () => {
+      if (!gridRef.current?.parentElement) return;
+      
+      // Get available space from parent container
+      const parent = gridRef.current.parentElement;
+      const availableWidth = parent.clientWidth;
+      const availableHeight = parent.clientHeight;
+      
+      // Calculate cell dimensions with gap included
+      let cellW = (availableWidth - (cols - 1) * gap) / cols;
+      let rowH = (availableHeight - (rows - 1) * gap) / rows;
+      
+      // Apply max constraints if provided
+      if (maxCellWidth) cellW = Math.min(cellW, maxCellWidth);
+      if (maxCellHeight) rowH = Math.min(rowH, maxCellHeight);
+      
+      setDimensions({ cellW, rowH });
+    };
+
+    calculateDimensions();
+    
+    const resizeObserver = new ResizeObserver(calculateDimensions);
+    if (gridRef.current?.parentElement) {
+      resizeObserver.observe(gridRef.current.parentElement);
+    }
+    
+    window.addEventListener('resize', calculateDimensions);
+    
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', calculateDimensions);
+    };
+  }, [cols, rows, gap, maxCellWidth, maxCellHeight]);
+
+  const gridW = cols * dimensions.cellW + (cols - 1) * gap;
+  const gridH = rows * dimensions.rowH + (rows - 1) * gap;
 
   const background = showGrid
     ? {
@@ -35,20 +74,20 @@ export default function WidgetGrid({
           linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px),
           linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)
         `,
-        backgroundSize: `${cellW + gap}px ${rowH + gap}px`,
+        backgroundSize: `${dimensions.cellW + gap}px ${dimensions.rowH + gap}px`,
         backgroundPosition: `0 0`,
       }
     : {};
 
   const ctxValue = useMemo(() => {
-    const spanX = cellW + gap;
-    const spanY = rowH + gap;
+    const spanX = dimensions.cellW + gap;
+    const spanY = dimensions.rowH + gap;
 
     const cellToPxRect = (c, r, w, h) => ({
       x: c * spanX,
       y: r * spanY,
-      w: w * cellW + (w - 1) * gap,
-      h: h * rowH + (h - 1) * gap,
+      w: w * dimensions.cellW + (w - 1) * gap,
+      h: h * dimensions.rowH + (h - 1) * gap,
     });
 
     const clampToBounds = (c, r, w, h) => {
@@ -68,8 +107,8 @@ export default function WidgetGrid({
     return {
       cols,
       rows,
-      cellW,
-      rowH,
+      cellW: dimensions.cellW,
+      rowH: dimensions.rowH,
       gap,
       gridW,
       gridH,
@@ -80,7 +119,12 @@ export default function WidgetGrid({
       clampToBounds,
       deltaPxToDeltaCells,
     };
-  }, [cols, rows, cellW, rowH, gap, gridW, gridH]);
+  }, [cols, rows, dimensions.cellW, dimensions.rowH, gap, gridW, gridH]);
+
+  // Don't render until we've calculated dimensions
+  if (dimensions.cellW <= 0 || dimensions.rowH <= 0) {
+    return <div ref={gridRef} className={className} style={style} />;
+  }
 
   return (
     <GridCtx.Provider value={ctxValue}>
@@ -105,7 +149,6 @@ export default function WidgetGrid({
     </GridCtx.Provider>
   );
 }
-
 /**
  * Widget
  * Controlled component:
