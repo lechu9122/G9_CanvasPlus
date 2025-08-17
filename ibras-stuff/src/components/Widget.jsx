@@ -55,7 +55,7 @@ export default function Widget({
 
   const onPointerDown = (e) => {
     // only left button or primary touch
-    if (e.button != null && e.button !== 0) return;
+    if ((e.button !== null && e.button !== undefined) && e.button !== 0) return;
 
     // start drag via handle only
     const handle = e.currentTarget;
