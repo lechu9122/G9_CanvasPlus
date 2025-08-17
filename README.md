@@ -27,18 +27,18 @@ The `server` folder is a Spring Boot application. It exposes REST
 endpoints that the front‑end consumes. Endpoints include:
 
 - `GET /api/ai/ping` -- returns `ok` to indicate the AI service is
-  alive[\[1\]](https://raw.githubusercontent.com/ZingZing001/G9_CanvasPlus/testing/apicalls/backend/backend/src/main/java/nz/ac/uoa/g9/backend/ai/LLMController.java#:~:text=%40GetMapping%28,).
+  alive
 - `POST /api/ai/complete` -- accepts a plain‑text prompt and returns a
   completion from
-  OpenAI[\[1\]](https://raw.githubusercontent.com/ZingZing001/G9_CanvasPlus/testing/apicalls/backend/backend/src/main/java/nz/ac/uoa/g9/backend/ai/LLMController.java#:~:text=%40GetMapping%28,).
+  OpenAI
 - `GET /api/db/ping` -- pings the database and returns the server time
   and DB
-  user[\[2\]](https://raw.githubusercontent.com/ZingZing001/G9_CanvasPlus/testing/apicalls/backend/backend/src/main/java/nz/ac/uoa/g9/backend/db/DbController.java#:~:text=%40RequestMapping%28,private%20final%20DbService%20dbService).
+  user.
 
 The server uses environment variables for secrets such as the OpenAI API
 key and Supabase credentials; these are defined in a `.env` file and
 referenced in
-`server/src/main/resources/application.properties`[\[3\]](https://raw.githubusercontent.com/ZingZing001/G9_CanvasPlus/testing/apicalls/backend/backend/src/main/resources/application.properties#:~:text=,secret%3D%24%7BSUPABASE_JWT_SIGNER).
+`server/src/main/resources/application.properties`
 
 ## Prerequisites
 
@@ -86,7 +86,7 @@ referenced in
     ./mvnw spring-boot:run
 
 1. The server starts on port 8080 (configurable via
-    `application.properties`[\[4\]](https://raw.githubusercontent.com/ZingZing001/G9_CanvasPlus/testing/apicalls/backend/backend/src/main/resources/application.properties#:~:text=%23%20,stacktrace%3Dalways%20server.address%3Dlocalhost%20server.port%3D%24%7BPORT%3A8080)).
+    `application.properties`
 
 ### Run the front‑end only
 
@@ -139,19 +139,3 @@ server work goes in `server`, and update this README if you introduce
 new scripts or configuration.
 
 ------------------------------------------------------------------------
-
-[\[1\]](https://raw.githubusercontent.com/ZingZing001/G9_CanvasPlus/testing/apicalls/backend/backend/src/main/java/nz/ac/uoa/g9/backend/ai/LLMController.java#:~:text=%40GetMapping%28,)
-raw.githubusercontent.com
-
-<https://raw.githubusercontent.com/ZingZing001/G9_CanvasPlus/testing/apicalls/backend/backend/src/main/java/nz/ac/uoa/g9/backend/ai/LLMController.java>
-
-[\[2\]](https://raw.githubusercontent.com/ZingZing001/G9_CanvasPlus/testing/apicalls/backend/backend/src/main/java/nz/ac/uoa/g9/backend/db/DbController.java#:~:text=%40RequestMapping%28,private%20final%20DbService%20dbService)
-raw.githubusercontent.com
-
-<https://raw.githubusercontent.com/ZingZing001/G9_CanvasPlus/testing/apicalls/backend/backend/src/main/java/nz/ac/uoa/g9/backend/db/DbController.java>
-
-[\[3\]](https://raw.githubusercontent.com/ZingZing001/G9_CanvasPlus/testing/apicalls/backend/backend/src/main/resources/application.properties#:~:text=,secret%3D%24%7BSUPABASE_JWT_SIGNER)
-[\[4\]](https://raw.githubusercontent.com/ZingZing001/G9_CanvasPlus/testing/apicalls/backend/backend/src/main/resources/application.properties#:~:text=%23%20,stacktrace%3Dalways%20server.address%3Dlocalhost%20server.port%3D%24%7BPORT%3A8080)
-raw.githubusercontent.com
-
-<https://raw.githubusercontent.com/ZingZing001/G9_CanvasPlus/testing/apicalls/backend/backend/src/main/resources/application.properties>
