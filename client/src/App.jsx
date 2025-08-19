@@ -4,6 +4,7 @@
 import React, { useState, useCallback } from "react";
 import WidgetGrid, { Widget } from "./components/WidgetGrid.jsx";
 import useGoogleCalendarEvents from "./hooks/useGoogleCalendarEvents";
+import WeatherWidget from "./components/WeatherWidget.jsx"
 
 export default function App() {
   const [widgets, setWidgets] = useState([
@@ -48,12 +49,7 @@ export default function App() {
               color={w.color}
               onMove={handleMove}
             >
-              {w.id === "weather" && (
-                <div>
-                  <div style={{ fontSize: 18, marginBottom: 8 }}>Auckland</div>
-                  <div style={{ fontSize: 14, opacity: 0.9 }}>High 15° • Low 8° • Showers</div>
-                </div>
-              )}
+              {w.id === "weather" && <WeatherWidget />}
 
               {w.id === "calendar" && (
                 (loading)
