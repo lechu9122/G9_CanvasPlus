@@ -1,0 +1,38 @@
+name: "Support / Question"
+description: "Ask for help, usage questions, or clarification about the project."
+title: "Question: {short_summary}"
+labels: ["question"]
+body:
+  - type: input
+    id: short_summary
+    attributes:
+      label: "Summary of the question"
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: "Environment"
+      description: "OS, runtime, browser, version, etc."
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: "What are you trying to do?"
+      description: "Explain the problem or question in detail."
+
+  - type: textarea
+    id: what_you_tried
+    attributes:
+      label: "What you tried"
+      description: "Commands, code snippets, or steps you've already tried."
+
+  - type: input
+    id: contact
+    attributes:
+      label: "Preferred contact (optional)"
+      description: "Email, Discord, etc., if you'd like follow up off GitHub."
+
+  - type: markdown
+    attributes:
+      value: "Thanks! We'll respond as soon as we can — please include repro steps or code where possible."
