@@ -12,7 +12,7 @@ export default function App() {
     { id: "weather", title: "Weather", col: 0, row: 0, w: 2, h: 2, color: "#1f2937" },
     { id: "calendar", title: "Calendar", col: 3, row: 0, w: 4, h: 3, color: "#0d9488" },
     { id: "notes", title: "Notes", col: 0, row: 2, w: 3, h: 3, color: "#7c3aed" },
-    { id: "search", title: "Search", col: 0, row: 0, w: 5, h: 1, color: "#1f2937" },
+    { id: "search", title: "Search", col: 7, row: 0, w: 4, h: 1, color: "#1f2937" },
 
   ]);
 
