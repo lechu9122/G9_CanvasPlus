@@ -311,6 +311,7 @@ export function Widget({
           transition: dragging || grabbed ? "none" : "left 160ms, top 160ms, box-shadow 160ms",
           overflow: "hidden",
           color: "white",
+            boxSizing: "border-box",
           ...style,
         }}
       >
@@ -348,7 +349,7 @@ export function Widget({
         </div>
 
         {/* Content area (stays interactive) */}
-        <div style={{ padding: 12, width: "100%", height: `calc(100% - 36px)`, overflow: "auto" }}>{children}</div>
+        <div style={{ padding: 12, width: "100%", height: `calc(100% - 36px)`, overflow: "auto", boxSizing: "border-box" }}>{children}</div>
       </div>
     </>
   );

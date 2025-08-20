@@ -31,7 +31,6 @@ const WMO = {
     96: "Thunderstorm (slight hail)",
     99: "Thunderstorm (heavy hail)",
 };
-const THE_CORRECT_UNIT = "°C";
 
 // when looking outside doesnt work anymore
 function getIsNight(timeZone) {
@@ -80,7 +79,7 @@ export default function WeatherWidget() {
                 });
 
                 const lat = ip.latitude, lon = ip.longitude;
-                const place = [ip.city];
+                const place = ip.city || " ";
                 const timeZone = ip.timezone;
 
                 // Open Meteo weather fetching
@@ -122,45 +121,48 @@ export default function WeatherWidget() {
 
     const { dateStr, place, temp, desc, icon } = state.data;
     return (
-        // <div>
-        //     <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>{dateStr}</div>
-        //     <div style={{ fontSize: 18, marginBottom: 6 }}>{place}</div>
-        //     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        //         <span role="img" aria-label={desc} style={{ fontSize: 40, lineHeight: 1 }}>
-        //   {icon}
-        // </span>
-        //         <div style={{ fontSize: 36, fontWeight: 650, lineHeight: 1 }}>{temp}{THE_CORRECT_UNIT}</div>
-        //         <div style={{ fontSize: 14, opacity: 0.9 }}>{desc}</div>
-        //     </div>
-        // </div>
-        <div style={{ position: "relative", width: "89%", height: "100%" }}> //These numbers are all aribitrary
-            {/* Top-left: date */}
+        <div style={{ position: "relative", width: "100%", height: "100%" }}>
+            {/* Top-Right: date */}
             <div style={{ position: "absolute", top: 0, right: 0, fontSize: 12, opacity: 0.75, textAlign: "right" }}>
                 {dateStr}
             </div>
 
-            {/* Top-right: location (bold) + smaller weather text */}
-            <div style={{ position: "absolute", top: -6, left: -2, textAlign: "left" }}>
+            {/* Top-left: location (bold) + smaller weather text */}
+            <div style={{ position: "absolute", top:0, left:0, textAlign: "left" }}>
                 <div style={{ fontSize: 16, fontWeight: 600 }}>{place}</div>
                 <div style={{ fontSize: 12, opacity: 0.85 }}>{desc}</div>
             </div>
 
             {/* Center: large symbol and temperature */}
+            {/* CENTER: emoji */}
             <div
                 style={{
                     position: "absolute",
-                    inset: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 6,
+                    left: "50%",
+                    top: "40%",
+                    transform: "translate(-50%, -50%)", // perfect center
+                    lineHeight: 0,
                 }}
             >
-        <span role="img" aria-label={desc} style={{ fontSize: 56, lineHeight: 1 }}>
-          {icon}
-        </span>
-                <div style={{ fontSize: 44, fontWeight: 700, lineHeight: 1 }}>{temp}°C</div>
+      <span role="img" aria-label={desc} style={{ fontSize: 56, lineHeight: 1 }}>
+        {icon}
+      </span>
+            </div>
+
+            {/* BOTTOM: temperature (sits between bottom edge and the emoji) */}
+            <div
+                style={{
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    bottom: 6,              // nudge as you like
+                    textAlign: "center",
+                    fontSize: 30,
+                    fontWeight: 700,
+                    lineHeight: 1,
+                }}
+            >
+                {temp}°C
             </div>
         </div>
     );
