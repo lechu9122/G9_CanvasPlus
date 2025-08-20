@@ -4,12 +4,14 @@
 import React, { useState, useCallback } from "react";
 import WidgetGrid, { Widget } from "./components/WidgetGrid.jsx";
 import useGoogleCalendarEvents from "./hooks/useGoogleCalendarEvents";
+import SearchWidget from "./components/SearchWidget";
 
 export default function App() {
   const [widgets, setWidgets] = useState([
     { id: "weather", title: "Weather", col: 0, row: 0, w: 3, h: 2, color: "#1f2937" },
     { id: "calendar", title: "Calendar", col: 3, row: 0, w: 4, h: 3, color: "#0d9488" },
     { id: "notes", title: "Notes", col: 0, row: 2, w: 3, h: 3, color: "#7c3aed" },
+      {id: "search", title: "Search", col: 7, row: 0, w: 5, h: 1, color: "#37cad7" },
   ]);
 
   const handleMove = useCallback((id, pos) => {
@@ -54,7 +56,7 @@ export default function App() {
                   <div style={{ fontSize: 14, opacity: 0.9 }}>High 15° • Low 8° • Showers</div>
                 </div>
               )}
-
+                {w.id === "search" && <SearchWidget/>}
               {w.id === "calendar" && (
                 (loading)
                   ? <div>Loading events...</div>
