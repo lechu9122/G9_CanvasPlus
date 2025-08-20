@@ -1,17 +1,29 @@
 import React, { useState} from 'react';
+
+// engine list to map the enginer name to the search url for a query
 const ENGINES = {
     google:{label: "Google", url: (query) => `https://www.google.com/search?q=${encodeURIComponent(query)}`},
     baidu:{label: "Baidu", url: (query) => `https://www.baidu.com/s?wd=${encodeURIComponent(query)}` },
     bing:{label: "Bing", url: (query) => `https://www.bing.com/search?q=${encodeURIComponent(query)}` },
     ddg:{label: "DuckDuckGo", url: (query) => `https://www.duckduckgo.com/search?q=${encodeURIComponent(query)}` },
     yahoo:{label: "Yahoo!", url: (query) => `https://www.search.yahoo.com/search?p=${encodeURIComponent(query)}` },
-    wikipedia:{label: "Wiki", url: (query) => `https://en.wikipedia.org/w/index.php/search=${encodeURIComponent(query)}` },
+    wikipedia:{label: "Wiki", url: (query) => `https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(query)}` },
 }
 
 export default function SearchWidget() {
     const [query,setQuery] = useState('');
-    const FIRST_ENGINE = Object.keys(ENGINES)[0]; // sets the engines to the first engine
+
+    // sets the first engine as the default engine
+    const FIRST_ENGINE = Object.keys(ENGINES)[0];
     const [engine, setEngine] = useState(FIRST_ENGINE);
+
+    /**
+     * Handle form submit:
+     *  - Prevent the form from reloading the page
+     *  - Trim whitespace and no-op on empty input
+     *  - Open the chosen engine's URL in a new tab
+     *  - Clear the input afterward
+     */
     const onSearch = (e) =>{
         e.preventDefault();
         const queryText = query.trim();
@@ -20,7 +32,7 @@ export default function SearchWidget() {
         setQuery("");
     }
     return(
-        // Blank Searchbox
+        // Form wrapper so "Enter" submits the search.
         <form
             onSubmit={onSearch}
             style={{
