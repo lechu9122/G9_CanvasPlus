@@ -33,6 +33,39 @@ const WMO = {
 };
 const THE_CORRECT_UNIT = "°C";
 
+// when looking outside doesnt work anymore
+function getIsNight(timeZone) {
+    try {
+        const hour = Number(
+            new Intl.DateTimeFormat("en-GB", {
+                hour: "2-digit",
+                hour12: false,
+                timeZone: timeZone || undefined,
+            }).format(new Date())
+        );
+        return hour < 6 || hour >= 18;
+    } catch {
+        return false;
+    }
+}
+
+function getWeatherIcon(code, isNight) {
+    if (code === 0) return isNight ? "🌙" : "☀️";
+    if (code === 1) return isNight ? "🌙" : "🌤️";
+    if (code === 2) return isNight ? "☁️" : "⛅";
+    if (code === 3) return "☁️";
+    if (code === 45 || code === 48) return "🌫️";
+    if (code === 51 || code === 53 || code === 55) return "🌦️";
+    if (code === 61 || code === 63 || code === 65) return "🌧️";
+    if (code === 66 || code === 67) return "🧊🌧️";
+    if (code === 71 || code === 73 || code === 75 || code === 77) return "❄️";
+    if (code === 80 || code === 81 || code === 82) return "🌦️";
+    if (code === 85 || code === 86) return "🌨️";
+    if (code === 95) return "⛈️";
+    if (code === 96 || code === 99) return "⛈️🧊";
+    return "🌡️";
+}
+
 export default function WeatherWidget() {
     const [state, setState] = useState({ loaded: false, error: null, data: null });
 
@@ -65,7 +98,7 @@ export default function WeatherWidget() {
                     temp = wx.current_weather.temperature;
                     code = wx.current_weather.weathercode;
                 }
-
+                const isNight = getIsNight(timeZone);
                 const data = {
                     dateStr: new Intl.DateTimeFormat(undefined, {
                         weekday: "short", month: "short", day: "numeric", timeZone: timeZone || undefined,
@@ -73,6 +106,7 @@ export default function WeatherWidget() {
                     place: place || "Your area",
                     temp: Math.round(temp),
                     desc: WMO[code] ?? "Weather",
+                    icon: getWeatherIcon(code, isNight),
                 };
 
                 if (!cancelled) setState({ loaded: true, error: null, data });
@@ -84,16 +118,49 @@ export default function WeatherWidget() {
     }, []);
 
     if (!state.loaded) return <div>Loading weather…</div>;
-    if (state.error) return <div style={{ color: "salmon" }}>Weather error: {state.error}</div>;
+    if (state.error) return <div style={{ color: "salmon" }}>Weather error: {state.error}</div>; // oh piss
 
-    const { dateStr, place, temp, desc } = state.data;
+    const { dateStr, place, temp, desc, icon } = state.data;
     return (
-        <div>
-            <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>{dateStr}</div>
-            <div style={{ fontSize: 18, marginBottom: 6 }}>{place}</div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-                <div style={{ fontSize: 36, fontWeight: 650, lineHeight: 1 }}>{temp}{THE_CORRECT_UNIT}</div>
-                <div style={{ fontSize: 14, opacity: 0.9 }}>{desc}</div>
+        // <div>
+        //     <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>{dateStr}</div>
+        //     <div style={{ fontSize: 18, marginBottom: 6 }}>{place}</div>
+        //     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        //         <span role="img" aria-label={desc} style={{ fontSize: 40, lineHeight: 1 }}>
+        //   {icon}
+        // </span>
+        //         <div style={{ fontSize: 36, fontWeight: 650, lineHeight: 1 }}>{temp}{THE_CORRECT_UNIT}</div>
+        //         <div style={{ fontSize: 14, opacity: 0.9 }}>{desc}</div>
+        //     </div>
+        // </div>
+        <div style={{ position: "relative", width: "89%", height: "100%" }}> //These numbers are all aribitrary
+            {/* Top-left: date */}
+            <div style={{ position: "absolute", top: 0, right: 0, fontSize: 12, opacity: 0.75, textAlign: "right" }}>
+                {dateStr}
+            </div>
+
+            {/* Top-right: location (bold) + smaller weather text */}
+            <div style={{ position: "absolute", top: -6, left: -2, textAlign: "left" }}>
+                <div style={{ fontSize: 16, fontWeight: 600 }}>{place}</div>
+                <div style={{ fontSize: 12, opacity: 0.85 }}>{desc}</div>
+            </div>
+
+            {/* Center: large symbol and temperature */}
+            <div
+                style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                }}
+            >
+        <span role="img" aria-label={desc} style={{ fontSize: 56, lineHeight: 1 }}>
+          {icon}
+        </span>
+                <div style={{ fontSize: 44, fontWeight: 700, lineHeight: 1 }}>{temp}°C</div>
             </div>
         </div>
     );
