@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "title": "Assignment 1",
+    "course": "SOFTENG 310",
+    "dueDate": "2025-08-25T23:59:00Z"
+  },
+  {
+    "id": 2,
+    "title": "Lab 2",
+    "course": "SOFTENG 306",
+    "dueDate": "2025-08-22T17:00:00Z"
+  },
+  {
+    "id": 3,
+    "title": "Reflection Week 5",
+    "course": "SOFTENG 325",
+    "dueDate": "2025-08-28T12:00:00Z"
+  },
+  {
+    "id": 4,
+    "title": "Midterm Exam",
+    "course": "COMPSCI 367",
+    "dueDate": "2025-09-01T09:00:00Z"
+  },
+  {
+    "id": 5,
+    "title": "Test 1",
+    "course": "SOFTENG 310",
+    "dueDate": "2025-08-30T14:00:00Z"
+  },
+  {
+    "id": 6,
+    "title": "Lab 3",
+    "course": "SOFTENG 306",
+    "dueDate": "2025-08-29T17:00:00Z"
+  },
+  {
+    "id": 7,
+    "title": "Assignment 2",
+    "course": "SOFTENG 325",
+    "dueDate": "2025-09-03T23:59:00Z"
+  },
+  {
+    "id": 8,
+    "title": "Project Proposal",
+    "course": "COMPSCI 367",
+    "dueDate": "2025-08-27T16:00:00Z"
+  }
+]
