@@ -142,8 +142,8 @@ export default function useGoogleCalendarEvents({ maxResults = 10, timeMin = new
 
   // Function to trigger interactive sign-in
   const signIn = async () => {
-    setLoading(true);
-    setError(null);
+    // setLoading(true);
+    // setError(null);
     try {
       // Ensure script is loaded
       if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
@@ -172,7 +172,7 @@ export default function useGoogleCalendarEvents({ maxResults = 10, timeMin = new
 
       // Save token and expiry
       const expiresIn = tokenResp.expires_in || null;
-      const expiresAt = expiresIn ? Date.now() + (expiresIn * 1000) : Date.now() + (60*60*1000);
+      const expiresAt = expiresIn ? Date.now() + (expiresIn * 1000) : Date.now() + (60 * 60 * 1000);
       sessionStorage.setItem(TOKEN_KEY, JSON.stringify({
         access_token: tokenResp.access_token,
         expires_at: expiresAt

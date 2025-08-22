@@ -5,13 +5,17 @@
 import React, { useState, useCallback } from "react";
 import WidgetGrid, { Widget } from "./components/WidgetGrid.jsx";
 import useGoogleCalendarEvents from "./hooks/useGoogleCalendarEvents";
-import WeatherWidget from "./components/WeatherWidget.jsx";
+
+import WeatherWidget from "./components/WeatherWidget.jsx"
+import ClockWidget from "./components/ClockWidget.jsx";
+import SearchWidget from "./components/SearchWidget.jsx"
 import DailyScheduleWidget from "./components/DailyScheduleWidget.jsx";
-import SearchWidget from "./components/SearchWidget.jsx";
 import TodoWidget from "./components/TodoWidget.jsx";
+
 
 export default function App() {
   const [widgets, setWidgets] = useState([
+    { id: "clock", title: "Clock", col: 0, row: 5, w: 5, h: 2, colour: "#2b2b2bff" },
     { id: "weather", title: "Weather", col: 0, row: 0, w: 2, h: 2, color: "#1f2937" },
     { id: "calendar", title: "Calendar", col: 3, row: 0, w: 4, h: 3, color: "#0d9488" },
     { id: "todo", title: "TODO List", col: 7, row: 0, w: 3, h: 4, color: "#4e4e4eff" },
@@ -42,6 +46,7 @@ export default function App() {
         fontFamily: "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial",
       }}
     >
+
       {/* Add button row (if you want a global add, otherwise move this to widgets) */}
       <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', marginBottom: 24 }}>
         {/* Example: <button>Add Widget</button> */}
@@ -62,6 +67,7 @@ export default function App() {
           >
             {w.id === "weather" && <WeatherWidget />}
             {w.id === "search" && <SearchWidget />}
+            {w.id === "clock" && <ClockWidget />}
             {w.id === "calendar" && (
               loading ? (
                 <div>Loading events...</div>
@@ -86,7 +92,6 @@ export default function App() {
 
             {w.id === "todo" && <TodoWidget />}
             {w.id === "schedule" && <DailyScheduleWidget />}
-
             {w.id === "notes" && (
               <div>
                 <label style={{ display: "block", fontSize: 12, opacity: 0.7, marginBottom: 6 }}>
@@ -108,7 +113,6 @@ export default function App() {
                 />
               </div>
             )}
-
           </Widget>
         ))}
       </WidgetGrid>

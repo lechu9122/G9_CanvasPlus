@@ -31,13 +31,13 @@ export default function WidgetGrid({
 
   const background = showGrid
     ? {
-        backgroundImage: `
+      backgroundImage: `
           linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px),
           linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)
         `,
-        backgroundSize: `${cellW + gap}px ${rowH + gap}px`,
-        backgroundPosition: `0 0`,
-      }
+      backgroundSize: `${cellW + gap}px ${rowH + gap}px`,
+      backgroundPosition: `0 0`,
+    }
     : {};
 
   const ctxValue = useMemo(() => {
@@ -311,7 +311,7 @@ export function Widget({
           transition: dragging || grabbed ? "none" : "left 160ms, top 160ms, box-shadow 160ms",
           overflow: "hidden",
           color: "white",
-            boxSizing: "border-box",
+          boxSizing: "border-box",
           ...style,
         }}
       >
