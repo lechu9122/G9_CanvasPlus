@@ -126,11 +126,10 @@ deploy the back‑end JAR to your favourite Java hosting environment.
 
 ## Testing
 
-The back‑end includes JUnit tests under `server/src/test/java`. Run them
-with:
+Run these from the root:
 
-    cd server
-    ./mvnw test
+    npm install --save-dev vitest @testing-library/react @testing-library/user-event @testing-library jest-dom jsdom
+    npm run test --workspace=client
 
 ## Contributing
 
