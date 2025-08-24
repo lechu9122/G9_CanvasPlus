@@ -7,6 +7,7 @@ import WidgetGrid, { Widget } from "./components/WidgetGrid.jsx";
 import useGoogleCalendarEvents from "./hooks/useGoogleCalendarEvents";
 
 import WeatherWidget from "./components/WeatherWidget.jsx"
+import GptWrapper from "./components/GptWrapper.jsx"
 import ClockWidget from "./components/ClockWidget.jsx";
 import SearchWidget from "./components/SearchWidget.jsx"
 import DailyScheduleWidget from "./components/DailyScheduleWidget.jsx";
@@ -21,6 +22,7 @@ export default function App() {
     { id: "todo", title: "TODO List", col: 7, row: 0, w: 3, h: 4 },
     { id: "schedule", title: "Daily Schedule", col: 10, row: 0, w: 4, h: 4.2 },
     { id: "notes", title: "Notes", col: 0, row: 2, w: 3, h: 3 },
+    { id: "gptWrapper", title: "ChatGPTWrapper", col: 3, row: 4, w: 6, h: 3 },
     { id: "search", title: "Search", col: 7, row: 0, w: 4, h: 1 },
 
   ]);
@@ -56,6 +58,7 @@ export default function App() {
             {w.id === "weather" && <WeatherWidget />}
             {w.id === "search" && <SearchWidget />}
             {w.id === "clock" && <ClockWidget />}
+            {w.id === "gptWrapper" && <GptWrapper />}
             {w.id === "calendar" && (
               loading ? (
                 <div>Loading events...</div>
