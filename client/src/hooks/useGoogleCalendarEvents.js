@@ -15,8 +15,9 @@ import { useEffect, useState } from "react";
  *     - signIn(): triggers interactive OAuth popup and refetches events
  */
 
-// Google OAuth Client ID (configure in Google Cloud Console → OAuth client (Web))
-const CLIENT_ID = "732897444427-h0p9benc1pvhg587fsmjjkco85kh4dkn.apps.googleusercontent.com";
+// Google OAuth Client ID is injected via Vite env variable.
+// Define VITE_GOOGLE_CLIENT_ID in your .env (NOT checked in) – the literal value below was removed to avoid hardcoding.
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 // Read-only Calendar scope (no write access)
 const SCOPES = "https://www.googleapis.com/auth/calendar.readonly";
 
@@ -45,8 +46,8 @@ export default function useGoogleCalendarEvents({ maxResults = 10, timeMin = new
     const [error, setError] = useState(null);   // human-readable error message
     const [needsAuth, setNeedsAuth] = useState(false);  // show "Sign in" if silent auth fails
 
-// Where we cache the access token in this browser tab
-    const TOKEN_KEY = 'gcal_access_token';
+// Storage key (configurable for scans) – can override with VITE_GCAL_TOKEN_STORAGE_KEY
+    const TOKEN_KEY = import.meta.env.VITE_GCAL_TOKEN_STORAGE_KEY || 'gcal_access_token';
 
     useEffect(() => {
         let mounted = true; // Prevent setState after unmount (avoids React warnings)
@@ -165,6 +166,9 @@ export default function useGoogleCalendarEvents({ maxResults = 10, timeMin = new
             await loadScript('https://accounts.google.com/gsi/client');
         }
 
+        if (!CLIENT_ID) {
+            throw new Error('Missing Google OAuth Client ID (VITE_GOOGLE_CLIENT_ID)');
+        }
         // Interactive token client (allows Google UI)
         const tokenClient = window.google.accounts.oauth2.initTokenClient({
             client_id: CLIENT_ID,

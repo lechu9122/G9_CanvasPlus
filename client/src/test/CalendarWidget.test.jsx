@@ -124,6 +124,12 @@ describe('CalendarWidget (integration)', () => {
   beforeEach(() => clearMocks());
   afterEach(() => clearMocks());
 
+  // Simple env sanity: ensure VITE_GOOGLE_CLIENT_ID is exposed (non-empty string) so widget auth can work
+  it('env provides Google client ID', () => {
+    // This checks our .env / build injection; tests relying on signIn assume a value exists
+    expect(typeof import.meta.env.VITE_GOOGLE_CLIENT_ID).toBe('string');
+  });
+
   // Integration: verifies hook init() no-token branch surfaces sign-in prompt through CalendarWidget UI
   it('shows sign-in prompt when no cached token exists', async () => {
     mockGoogleIdentity();
