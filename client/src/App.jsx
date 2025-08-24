@@ -15,13 +15,13 @@ import TodoWidget from "./components/TodoWidget.jsx";
 
 export default function App() {
   const [widgets, setWidgets] = useState([
-    { id: "clock", title: "Clock", col: 0, row: 5, w: 5, h: 2, colour: "#2b2b2bff" },
-    { id: "weather", title: "Weather", col: 0, row: 0, w: 2, h: 2, color: "#1f2937" },
-    { id: "calendar", title: "Calendar", col: 3, row: 0, w: 4, h: 3, color: "#0d9488" },
-    { id: "todo", title: "TODO List", col: 7, row: 0, w: 3, h: 4, color: "#4e4e4eff" },
-    { id: "schedule", title: "Daily Schedule", col: 10, row: 0, w: 4, h: 4.2, color: "#fbbf24" },
-    { id: "notes", title: "Notes", col: 0, row: 2, w: 3, h: 3, color: "#7c3aed" },
-    { id: "search", title: "Search", col: 7, row: 0, w: 4, h: 1, color: "#1f2937" },
+       { id: "weather", title: "Weather", col: 0, row: 0, w: 2, h: 2 },
+    { id: "clock", title: "Clock", col: 0, row: 5, w: 5, h: 2},
+    { id: "calendar", title: "Calendar", col: 3, row: 0, w: 4, h: 3},
+    { id: "todo", title: "TODO List", col: 7, row: 0, w: 3, h: 4 },
+    { id: "schedule", title: "Daily Schedule", col: 10, row: 0, w: 4, h: 4.2 },
+    { id: "notes", title: "Notes", col: 0, row: 2, w: 3, h: 3 },
+    { id: "search", title: "Search", col: 7, row: 0, w: 4, h: 1 },
 
   ]);
 
@@ -35,22 +35,10 @@ export default function App() {
   const { events, loading, error, needsAuth, signIn } = useGoogleCalendarEvents();
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#0b0e14",
-        display: "grid",
-        placeItems: "center",
-        padding: 24,
-        color: "white",
-        fontFamily: "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial",
-      }}
-    >
+    <>
 
       {/* Add button row (if you want a global add, otherwise move this to widgets) */}
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', marginBottom: 24 }}>
-        {/* Example: <button>Add Widget</button> */}
-      </div>
+
 
       <WidgetGrid cols={17} rows={8} cellW={96} rowH={96} gap={16} showGrid>
         {widgets.map((w) => (
@@ -116,6 +104,6 @@ export default function App() {
           </Widget>
         ))}
       </WidgetGrid>
-    </div>
+    </>
   );
 }
