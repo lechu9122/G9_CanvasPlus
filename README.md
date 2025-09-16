@@ -7,6 +7,7 @@ into a **monorepo** with separate front‑end and back‑end subprojects so
 that the UI and API can be developed and deployed together.
 
 This project is associated with the University of Auckland SOFTENG 310.
+
 ## Repository structure
 
 | Path         | Purpose                     |
@@ -46,19 +47,37 @@ referenced in
 - **Node.js** (version 18 or later) and **npm** -- for the front‑end.
 - **Java 17** and **Maven** (the repo uses the Maven Wrapper `./mvnw`)
   -- for the back‑end.
-- A `.env` file in the `server` directory containing values for:
+- Environment variables for configuration and secrets are required for both backend and frontend. These should be set in `.env` files in the respective directories.
+
+### Backend environment variables
+
+The backend requires the following environment variables. Placeholders and example values can be found in `server/.env.example`:
+
 - `OPENAI_API_KEY` -- your OpenAI API key.
-- `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_JWT_SIGNER` -- Supabase
-  credentials.
-- `SUPABASE_DATABASE_URL`, `SUPABASE_DATABASE_USER`,
-  `SUPABASE_DATABASE_PASSWORD` -- database connection details.
+- `SUPABASE_URL` -- the URL of your Supabase instance.
+- `SUPABASE_ANON_KEY` -- the anonymous public API key for Supabase.
+- `SUPABASE_JWT_SIGNER` -- JWT signer secret for Supabase.
+- `SUPABASE_DATABASE_URL` -- the connection URL for the database.
+- `SUPABASE_DATABASE_USER` -- the database username.
+- `SUPABASE_DATABASE_PASSWORD` -- the database password.
+
+### Frontend environment variables
+
+The frontend requires the following environment variables. Placeholders and example values can be found in `client/.env.example`:
+
+- `VITE_GOOGLE_CLIENT_ID` -- Google OAuth client ID for authentication.
+- `VITE_GCAL_TOKEN_STORAGE_KEY` -- key used to store Google Calendar tokens in local storage.
 
 ## Setup
 
 1. Clone the repository and change into the project directory.
 
-2. Copy `server/.env.example` (if present) to `server/.env` and fill in
-    the required secrets listed above.
+2. Copy environment variable example files and fill in the required secrets:
+
+    ```bash
+    cp server/.env.example server/.env
+    cp client/.env.example client/.env
+    ```
 
 3. Install client dependencies:
 
