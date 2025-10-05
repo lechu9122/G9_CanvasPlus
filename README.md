@@ -75,8 +75,8 @@ The frontend requires the following environment variables. Placeholders and exam
 2. Copy environment variable example files and fill in the required secrets:
 
     ```bash
-    cp server/.env.example server/.env
-    cp client/.env.example client/.env
+    cp server/..env server/.env
+    cp client/..env client/.env
     ```
 
 3. Install client dependencies:
