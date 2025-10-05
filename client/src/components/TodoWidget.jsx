@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 
 function TodoWidget() {
   // For hold-to-complete
@@ -177,15 +178,52 @@ function TodoWidget() {
         </div>
       </div>
 
-      {/* Modal for adding a new todo */}
-      {showModal && (
-        <div style={{
-          position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh',
-          background: 'rgba(0,0,0,0.18)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-          <div style={{ background: '#fff', borderRadius: 12, padding: 28, minWidth: 320, boxShadow: '0 4px 32px rgba(0,0,0,0.13)', position: 'relative' }}>
-            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: 12, right: 16, background: 'none', border: 'none', fontSize: 22, color: '#888', cursor: 'pointer' }} title="Close">✕</button>
-            <h3 style={{ margin: 0, marginBottom: 18, fontWeight: 700, fontSize: 18, color: '#22223b' }}>Add New Task</h3>
+      {/* Modal for adding a new todo (moved to a portal so it is NOT confined by the widget) */}
+      {showModal && createPortal(
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Add new task"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.35)',
+            zIndex: 5000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: 16,
+              padding: 28,
+              width: 'min(560px,100%)',
+              boxShadow: '0 12px 48px -8px rgba(0,0,0,0.25)',
+              position: 'relative',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}
+          >
+            <button
+              onClick={() => setShowModal(false)}
+              style={{
+                position: 'absolute',
+                top: 12,
+                right: 16,
+                background: 'none',
+                border: 'none',
+                fontSize: 22,
+                color: '#888',
+                cursor: 'pointer'
+              }}
+              title="Close"
+            >✕</button>
+            <h3 style={{ margin: 0, marginBottom: 18, fontWeight: 700, fontSize: 20, color: '#22223b' }}>
+              Add New Task
+            </h3>
             <form onSubmit={e => {
               e.preventDefault();
               if (!modalTitle.trim()) return;
@@ -226,10 +264,11 @@ function TodoWidget() {
                   <input id="todo-new-category" value={newCategory} onChange={e => setNewCategory(e.target.value)} placeholder="New category name..." style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1.5px solid #e5e7eb', fontSize: 15, outline: 'none', marginTop: 6 }} />
                 )}
               </div>
-              <button type="submit" style={{ width: '100%', padding: '10px 0', borderRadius: 8, background: '#22223b', color: '#fff', border: 'none', fontWeight: 600, fontSize: 16, letterSpacing: 0.2, cursor: 'pointer', transition: 'background 0.2s' }}>Add Task</button>
+              <button type="submit" style={{ width: '100%', padding: '10px 0', borderRadius: 8, background: '#22223b', color: '#fff', border: 'none', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}>Add Task</button>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <div style={{
