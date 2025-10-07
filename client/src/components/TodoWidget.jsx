@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { getTodos, createTodo, updateTodo, deleteTodo } from '../api/todos';
 
 function TodoWidget() {
   const [fadingIds, setFadingIds] = useState([]);
   const [todos, setTodos] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timeFilter, setTimeFilter] = useState("all");
   const [showModal, setShowModal] = useState(false);
@@ -12,6 +13,26 @@ function TodoWidget() {
   const [modalDue, setModalDue] = useState("");
   const [modalDescription, setModalDescription] = useState("");
   const [modalClass, setModalClass] = useState("");
+
+  // Fetch todos on mount
+  useEffect(() => {
+    loadTodos();
+  }, []);
+
+  const loadTodos = async () => {
+    setLoading(true);
+    setError(null);
+    const { data, error: fetchError } = await getTodos();
+    
+    if (fetchError) {
+      setError(fetchError.message);
+      setLoading(false);
+      return;
+    }
+    
+    setTodos(data || []);
+    setLoading(false);
+  };
 
   // Filtering logic
   let filtered = [...todos];
@@ -30,32 +51,89 @@ function TodoWidget() {
     }
     if (minDate && maxDate) {
       filtered = filtered.filter(t => {
-        const d = t.due_date || t.dueDate; // support both
+        const d = t.due_date;
         return d && new Date(d) >= minDate && new Date(d) < maxDate;
       });
     }
   }
 
-  const toggleTodo = (id) => {
+  const toggleTodo = async (id) => {
     // If already fading, ignore
     if (fadingIds.includes(id)) return;
-    // If marking as done, fade out first
+    
     const todo = todos.find(t => t.id === id);
-    if (todo && !todo.done) {
+    if (!todo) return;
+
+    // Optimistic update
+    const newDoneState = !todo.done;
+    
+    if (newDoneState) {
+      // If marking as done, fade out first
       setFadingIds(f => [...f, id]);
-      setTimeout(() => {
+      setTimeout(async () => {
         setTodos((prev) => prev.map(t => t.id === id ? { ...t, done: true } : t));
         setFadingIds(f => f.filter(fid => fid !== id));
-      }, 350); // match CSS transition duration
+        
+        // Update in database
+        const { error: updateError } = await updateTodo(id, { done: true });
+        if (updateError) {
+          // Revert on error
+          setTodos((prev) => prev.map(t => t.id === id ? { ...t, done: false } : t));
+          setError('Failed to update todo');
+        }
+      }, 350);
     } else {
-      // If unchecking, just update immediately
+      // If unchecking, update immediately
       setTodos((prev) => prev.map(t => t.id === id ? { ...t, done: false } : t));
+      
+      const { error: updateError } = await updateTodo(id, { done: false });
+      if (updateError) {
+        // Revert on error
+        setTodos((prev) => prev.map(t => t.id === id ? { ...t, done: true } : t));
+        setError('Failed to update todo');
+      }
     }
   };
 
-  // Always allow deleting (remove Canvas restriction)
-  const deleteTodo = (id) => {
+  const handleDeleteTodo = async (id) => {
+    // Optimistic update
     setTodos(prev => prev.filter(t => t.id !== id));
+    
+    const { error: deleteError } = await deleteTodo(id);
+    if (deleteError) {
+      // Reload on error
+      setError('Failed to delete todo');
+      await loadTodos();
+    }
+  };
+
+  const handleAddTodo = async (e) => {
+    e.preventDefault();
+    if (!modalTitle.trim()) return;
+
+    setShowModal(false);
+    
+    // Create todo in database
+    const { data: newTodo, error: createError } = await createTodo({
+      title: modalTitle.trim(),
+      description: modalDescription.trim(),
+      due_date: modalDue || null,
+      class: modalClass.trim(),
+    });
+
+    if (createError) {
+      setError('Failed to create todo');
+      return;
+    }
+
+    // Add to local state
+    setTodos(prev => [newTodo, ...prev]);
+    
+    // Reset form
+    setModalTitle("");
+    setModalDescription("");
+    setModalDue("");
+    setModalClass("");
   };
 
   if (loading) return <div>Loading tasks...</div>;
@@ -63,7 +141,6 @@ function TodoWidget() {
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 16px' }}>
-      {/* Obvious done/undone animations */}
       <style>
         {`
           @keyframes check-pop {
@@ -73,7 +150,6 @@ function TodoWidget() {
           }
         `}
       </style>
-      {/* Responsive controls: Add button on top if not enough space */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
           <button onClick={() => setShowModal(true)} style={{
@@ -120,7 +196,7 @@ function TodoWidget() {
         </div>
       </div>
 
-      {/* Modal for adding a new todo (moved to a portal so it is NOT confined by the widget) */}
+      {/* Modal for adding a new todo */}
       {showModal && createPortal(
         <div
           role="dialog"
@@ -166,26 +242,7 @@ function TodoWidget() {
             <h3 style={{ margin: 0, marginBottom: 18, fontWeight: 700, fontSize: 20, color: '#22223b' }}>
               Add New Task
             </h3>
-            <form onSubmit={e => {
-              e.preventDefault();
-              if (!modalTitle.trim()) return;
-              setTodos(prev => [
-                ...prev,
-                {
-                  id: Date.now(),
-                  title: modalTitle.trim(),
-                  description: modalDescription.trim(),
-                  due_date: modalDue || null,
-                  class: modalClass.trim(),
-                  done: false
-                }
-              ]);
-              setShowModal(false);
-              setModalTitle("");
-              setModalDescription("");
-              setModalDue("");
-              setModalClass("");
-            }}>
+            <form onSubmit={handleAddTodo}>
               <div style={{ marginBottom: 14 }}>
                 <label htmlFor="todo-title" style={{ fontSize: 14, fontWeight: 500, color: '#22223b', marginBottom: 4, display: 'block' }}>Title</label>
                 <input id="todo-title" value={modalTitle} onChange={e => setModalTitle(e.target.value)} required placeholder="Task title..." style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1.5px solid #e5e7eb', fontSize: 15, outline: 'none' }} />
@@ -224,8 +281,8 @@ function TodoWidget() {
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {filtered
             .sort((a, b) => {
-              const ad = a.due_date || a.dueDate;
-              const bd = b.due_date || b.dueDate;
+              const ad = a.due_date;
+              const bd = b.due_date;
               if (!ad && !bd) return 0;
               if (!ad) return 1;
               if (!bd) return -1;
@@ -268,7 +325,7 @@ function TodoWidget() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      cursor: 'pointer', // keep clickable even when done (for undo)
+                      cursor: 'pointer',
                       marginTop: 2,
                       marginRight: 12,
                       position: 'relative',
@@ -282,7 +339,6 @@ function TodoWidget() {
                         : '0 0 0 0 rgba(0,0,0,0)'
                     }}
                   >
-                    {/* Check icon: animated and high-contrast when done */}
                     <svg
                       width="20"
                       height="20"
@@ -316,22 +372,23 @@ function TodoWidget() {
                     }} title={todo.title}>
                       {todo.title}
                     </div>
-                    <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 2 }}>
-                      {todo.class || todo.course /* prefer class */}
-                    </div>
-                    {(todo.due_date || todo.dueDate) && (
-                      <div style={{ fontSize: 12, opacity: 0.7 }}>
-                        Due: {new Date(todo.due_date || todo.dueDate).toLocaleString()}
+                    {todo.class && (
+                      <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 2 }}>
+                        {todo.class}
                       </div>
                     )}
-                    {/* Optionally show description */}
+                    {todo.due_date && (
+                      <div style={{ fontSize: 12, opacity: 0.7 }}>
+                        Due: {new Date(todo.due_date).toLocaleString()}
+                      </div>
+                    )}
                     {todo.description && (
                       <div style={{ fontSize: 13, opacity: todo.done ? 0.6 : 0.9, marginBottom: 4, whiteSpace: 'pre-wrap' }}>
                         {todo.description}
                       </div>
                     )}
                   </div>
-                  <button onClick={() => deleteTodo(todo.id)} style={{
+                  <button onClick={() => handleDeleteTodo(todo.id)} style={{
                     marginLeft: 10,
                     background: "#fff",
                     border: "1.5px solid #f87171",
