@@ -179,3 +179,42 @@ background: #3b3f4a;          /* grey bubble */
   color: #e5e7ea;
   text-align: left !important;
 }
+
+/* Keep the composer visible on short screens */
+.gptw-composer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1; /* stay above the scrolling list */
+  /* safer padding for iOS notches / softkeybars */
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Allow the whole card to scroll if needed (instead of clipping) */
+.gptw-card {
+  /* was: overflow: hidden; */
+  overflow: auto;
+}
+
+/* Ensure the messages list never grows so tall that it forces the composer out */
+.gptw-list {
+  flex: 1 1 auto;
+  min-height: 0;          /* critical for flex children to shrink */
+  overflow-y: auto;
+  padding-bottom: 12px;    /* breathing room above the composer */
+}
+
+/* On short viewports, shrink the textarea so buttons fit */
+@media (max-height: 740px) {
+  .gptw-input {
+    min-height: 64px;
+    max-height: 140px;
+  }
+  .gptw-header p { display: none; } /* save vertical space */
+}
+
+/* If your container is inside another constrained panel, this helps too */
+@media (max-height: 600px) {
+  .gptw-header { padding-bottom: 4px; }
+  .gptw-actions { gap: 8px; }
+  .gptw-btn { padding: 8px 12px; font-size: 0.9rem; }
+}
