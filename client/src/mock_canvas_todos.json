@@ -46,5 +46,17 @@
     "title": "Project Proposal",
     "course": "COMPSCI 367",
     "dueDate": "2025-08-27T16:00:00Z"
+  },
+  {
+    "id": 9,
+    "title": "Reflection 4",
+    "course": "SOFTENG 310",
+    "dueDate": "2025-10-10T18:00:00Z"
+  },
+  {
+    "id": 10,
+    "title": "Exam",
+    "course": "SOFTENG 310",
+    "dueDate": "2025-11-14T16:00:00Z"
   }
 ]
