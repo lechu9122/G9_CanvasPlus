@@ -3,7 +3,8 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;            /* fill the Widget box */
+  height: 500px;
+   max-height: 90vh;     /* fill the Widget box */
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(216,219,224,0.2);
   border-radius: 14px;
