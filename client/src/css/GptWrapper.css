@@ -1,0 +1,221 @@
+/* Container fits the widget area — not full screen */
+.gptw-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 500px;
+   max-height: 90vh;     /* fill the Widget box */
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(216,219,224,0.2);
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.2);
+  overflow: hidden;        /* keep inner edges clean */
+}
+
+/* Header: left-focused */
+.gptw-header {
+  text-align: left;
+  padding: 18px 18px 8px;
+}
+.gptw-header h3 {
+  margin: 0;
+  font-size: 22px;         /* not huge so it fits */
+  font-weight: 700;
+}
+.gptw-header p {
+  margin: 6px 0 0;
+  opacity: 0.85;
+  font-size: 14px;
+}
+
+/* Optional error banner */
+.gptw-error {
+  border: 1px solid rgba(239, 68, 68, 0.4); /* red-500/40 */
+  background: rgba(239, 68, 68, 0.15);      /* red-500/15 */
+  color: #e5e7eb;                            /* slate-200 */
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+
+/* Messages list */
+.gptw-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 18px;           /* space between turns */
+}
+
+/* Empty state */
+.gptw-empty {
+  text-align: left;
+  opacity: 0.7;
+  font-size: 14px;
+  padding: 8px 2px;
+}
+
+/* One row per message */
+.gptw-row {
+  display: flex;
+  width: 100%;
+}
+.gptw-right { justify-content: flex-end; }
+.gptw-left  { justify-content: flex-start; }
+
+/* Message visuals */
+.gptw-bubble {
+  max-width: 82%;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+  font-size: 1.05rem;      /* comfy read size */
+}
+
+/* USER: right bubble (darker than background) */
+.gptw-bubble.user {
+background: #3b3f4a;          /* grey bubble */
+  color: #f1f5f9;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  position: relative;
+}
+
+/* BOT: left plain text — no bubble background */
+.gptw-bubble.bot {
+  background: transparent;
+  color: #e5e7ea;          /* readable on dark bg */
+  padding: 0;              /* plain text look */
+}
+
+/* Little tail for the user bubble */
+.gptw-tail {
+  position: relative;
+  right: 8px;
+  bottom: -6px;
+  width: 8px;
+  height: 8px;
+  background: #4f46e5;
+  display: inline-block;
+  transform: rotate(45deg);
+  border-bottom-right-radius: 2px;
+}
+
+/* Composer sticks to bottom */
+.gptw-composer {
+  border-top: 1px solid rgba(216,219,224,0.18);
+  padding: 10px 14px 14px;
+  background: rgba(18,18,18,0.35);
+}
+
+/* Input (auto-resizes via JS) */
+.gptw-input {
+  width: 100%;
+  min-height: 96px;       /* starts larger */
+  max-height: 240px;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(147,163,184,0.35);
+  background: #0f172a;    /* darker than bg */
+  color: #e5e7ea;
+  resize: none;
+  outline: none;
+}
+.gptw-input::placeholder { color: #9ba3af; }
+
+/* Actions row: reset left, submit right */
+.gptw-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+.gptw-actions-split {
+  justify-content: space-between; /* left / right */
+}
+
+/* Buttons */
+.gptw-btn {
+  appearance: none;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.gptw-btn.primary {
+  background: #0f172a;
+  color: #fff;
+}
+.gptw-btn.primary:disabled { opacity: .6; cursor: not-allowed; }
+.gptw-btn.secondary {
+  background: transparent;
+  color: #e5e7ea;
+  border: 1px solid rgba(147,163,184,0.35);
+}
+
+.gptw-card,
+.gptw-header,
+.gptw-list,
+.gptw-row,
+.gptw-bubble {
+  text-align: left !important;
+}
+
+/* keep bot rows anchored left */
+.gptw-row.gptw-left {
+  justify-content: flex-start !important;
+}
+
+/* make AI (bot) messages left-aligned text, no centering */
+.gptw-bubble.bot {
+  display: inline-block;
+  padding: 0;
+  background: transparent;
+  color: #e5e7ea;
+  text-align: left !important;
+}
+
+/* Keep the composer visible on short screens */
+.gptw-composer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1; /* stay above the scrolling list */
+  /* safer padding for iOS notches / softkeybars */
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Allow the whole card to scroll if needed (instead of clipping) */
+.gptw-card {
+  /* was: overflow: hidden; */
+  overflow: auto;
+}
+
+/* Ensure the messages list never grows so tall that it forces the composer out */
+.gptw-list {
+  flex: 1 1 auto;
+  min-height: 0;          /* critical for flex children to shrink */
+  overflow-y: auto;
+  padding-bottom: 12px;    /* breathing room above the composer */
+}
+
+/* On short viewports, shrink the textarea so buttons fit */
+@media (max-height: 740px) {
+  .gptw-input {
+    min-height: 64px;
+    max-height: 140px;
+  }
+  .gptw-header p { display: none; } /* save vertical space */
+}
+
+/* If your container is inside another constrained panel, this helps too */
+@media (max-height: 600px) {
+  .gptw-header { padding-bottom: 4px; }
+  .gptw-actions { gap: 8px; }
+  .gptw-btn { padding: 8px 12px; font-size: 0.9rem; }
+}
