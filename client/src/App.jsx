@@ -12,6 +12,7 @@ import ClockWidget from "./components/ClockWidget.jsx";
 import SearchWidget from "./components/SearchWidget.jsx"
 import DailyScheduleWidget from "./components/DailyScheduleWidget.jsx";
 import TodoWidget from "./components/TodoWidget.jsx";
+import NotesWidget from './components/NotesWidget';
 import CanvasWidget from "./components/CanvasWidget.jsx";
 
 
@@ -86,27 +87,7 @@ export default function App() {
             {w.id === "todo" && <TodoWidget />}
             {w.id === "canvas" && <CanvasWidget />}
             {w.id === "schedule" && <DailyScheduleWidget />}
-            {w.id === "notes" && (
-              <div>
-                <label style={{ display: "block", fontSize: 12, opacity: 0.7, marginBottom: 6 }}>
-                  Quick note
-                </label>
-                <textarea
-                  rows={6}
-                  placeholder="Type here…"
-                  style={{
-                    width: "100%",
-                    padding: 8,
-                    borderRadius: 8,
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    background: "rgba(255,255,255,0.06)",
-                    color: "white",
-                    outline: "none",
-                    resize: "vertical",
-                  }}
-                />
-              </div>
-            )}
+            {w.id === "notes" && <NotesWidget />}
           </Widget>
         ))}
       </WidgetGrid>
