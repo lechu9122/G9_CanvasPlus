@@ -1,19 +1,41 @@
-import React, { useMemo, useRef, useEffect, useLayoutEffect, useState } from "react";
+// client/src/components/WidgetGrid.jsx
+import React, {
+  useMemo,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
 import "../../css/widget-grid.css";
+import {
+  getUserPreferences,
+  saveUserPreferences,
+} from "../../api/preferences.js";
+// NOTE: adjust the import path to your supabase client if needed
+import { supabase } from "../../auth/supabaseClient.js";
 
 const GridCtx = React.createContext(null);
 
+// simple debounce helper
+const debounce = (fn, ms = 300) => {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), ms);
+  };
+};
+
 export default function WidgetGrid({
-  cols = 12,
-  rows = 8,
-  cellW = 96, // initial fallback only
-  rowH = 96, // initial fallback only
-  gap = 16,
-  showGrid = true,
-  className = "",
-  style = {},
-  children,
-}) {
+                                     cols = 12,
+                                     rows = 8,
+                                     cellW = 96, // initial fallback only
+                                     rowH = 96, // initial fallback only
+                                     gap = 16,
+                                     showGrid = true,
+                                     className = "",
+                                     style = {},
+                                     children,
+                                   }) {
   const containerRef = useRef(null);
   const clipRef = useRef(null);
   const wallpaperRef = useRef(null);
@@ -21,10 +43,59 @@ export default function WidgetGrid({
   const [widgetColor, setWidgetColor] = useState("#007AFF");
   const [wallpaper, setWallpaper] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [user, setUser] = useState(null);
 
   // Derived cell sizes so the grid fills the viewport area exactly
   const [cw, setCw] = useState(cellW);
   const [rh, setRh] = useState(rowH);
+
+  // gate saving until DB has hydrated
+  const hydratedRef = useRef(false);
+
+  // auth
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user || null);
+    });
+    supabase.auth.getUser().then(({ data }) => setUser(data?.user || null));
+    return () => sub?.subscription?.unsubscribe?.();
+  }, []);
+
+  // load preferences once
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const prefs = await getUserPreferences(user.id);
+      if (prefs) {
+        if (prefs.theme_color) setWidgetColor(prefs.theme_color);
+        if (prefs.background_type === "image" && prefs.background_value) {
+          setWallpaper(prefs.background_value);
+        } else if (prefs.background_type === "color" && prefs.background_value) {
+          // use solid-color background mode (optional)
+          setWallpaper(null);
+          // If you want to apply page bg color, uncomment:
+          // document.body.style.backgroundColor = prefs.background_value;
+        }
+      }
+      hydratedRef.current = true;
+    })();
+  }, [user]);
+
+  // auto-save when prefs change, but only after hydration
+  useEffect(() => {
+    if (!user || !hydratedRef.current) return;
+    saveUserPreferences({
+      userId: user.id,
+      themeColor: widgetColor,
+      backgroundType: wallpaper ? "image" : "color",
+      backgroundValue: wallpaper || widgetColor,
+    }).catch(console.error);
+  }, [user, widgetColor, wallpaper]);
+
+  // debounced explicit save from handlers
+  const debouncedSave = useRef(
+      debounce((payload) => saveUserPreferences(payload).catch(console.error), 300)
+  ).current;
 
   // Recompute cell sizes from the clip’s live size
   useLayoutEffect(() => {
@@ -50,7 +121,7 @@ export default function WidgetGrid({
     const ro = new ResizeObserver(recompute);
     ro.observe(el);
 
-    // Track URL bar / viewport dynamic changes
+    // Track viewport changes
     const onVV = () => recompute();
     window.addEventListener("resize", onVV);
     window.visualViewport?.addEventListener("resize", onVV);
@@ -96,12 +167,34 @@ export default function WidgetGrid({
     const file = e.target.files?.[0];
     if (file && file.type.match("image.*")) {
       const reader = new FileReader();
-      reader.onload = (ev) => setWallpaper(ev.target.result);
+      reader.onload = (ev) => {
+        const img = ev.target.result;
+        setWallpaper(img);
+        if (user && hydratedRef.current) {
+          debouncedSave({
+            userId: user.id,
+            themeColor: widgetColor,
+            backgroundType: "image",
+            backgroundValue: img,
+          });
+        }
+      };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleColorChange = (e) => setWidgetColor(e.target.value);
+  const handleColorChange = (e) => {
+    const next = e.target.value;
+    setWidgetColor(next);
+    if (user && hydratedRef.current) {
+      debouncedSave({
+        userId: user.id,
+        themeColor: next,
+        backgroundType: wallpaper ? "image" : "color",
+        backgroundValue: wallpaper || next,
+      });
+    }
+  };
 
   const ctxValue = useMemo(() => {
     const spanX = cw + gap;
@@ -147,82 +240,86 @@ export default function WidgetGrid({
   }, [cols, rows, cw, rh, gap, gridW, gridH, widgetColor]);
 
   return (
-    <GridCtx.Provider value={ctxValue}>
-      <div className="ios-widget-grid-container" ref={containerRef}>
-        <button
-          className="ios-settings-button"
-          onClick={() => setShowSettings((v) => !v)}
-          aria-label="Open settings"
-        >
-          ⚙️
-        </button>
-
-        {showSettings && (
-          <div className="ios-settings-panel">
-            <h3>Customize Widgets</h3>
-
-            <div className="ios-setting-group">
-              <label>Widget Color</label>
-              <input
-                type="color"
-                value={widgetColor}
-                onChange={handleColorChange}
-                className="ios-color-picker"
-              />
-              <div
-                className="color-preview"
-                style={{ backgroundColor: widgetColor }}
-              >
-                Current Color: {widgetColor}
-              </div>
-            </div>
-
-            <div className="ios-setting-group">
-              <label>Wallpaper</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleWallpaperUpload}
-                className="ios-wallpaper-upload"
-              />
-            </div>
-
-            <button
-              className="ios-close-settings"
-              onClick={() => setShowSettings(false)}
-            >
-              Close
-            </button>
-          </div>
-        )}
-
-        {/* Full-viewport clip */}
-        <div className="ios-grid-clip" ref={clipRef}>
-          <div
-            className="ios-wallpaper"
-            ref={wallpaperRef}
-            style={wallpaper ? { backgroundImage: `url(${wallpaper})` } : {}}
-          />
-
-          <div
-            role="grid"
-            aria-rowcount={rows}
-            aria-colcount={cols}
-            className={`ios-widget-grid ${className} ${showGrid ? "show-grid" : ""}`}
-            style={{
-              width: gridW,
-              height: gridH,
-              "--cell-width": `${cw}px`,
-              "--cell-height": `${rh}px`,
-              "--grid-gap": `${gap}px`,
-              ...style,
-            }}
+      <GridCtx.Provider value={ctxValue}>
+        <div className="ios-widget-grid-container" ref={containerRef}>
+          <button
+              className="ios-settings-button"
+              onClick={() => setShowSettings((v) => !v)}
+              aria-label="Open settings"
           >
-            {children}
+            ⚙️
+          </button>
+
+          {showSettings && (
+              <div className="ios-settings-panel">
+                <h3>Customize Widgets</h3>
+
+                <div className="ios-setting-group">
+                  <label htmlFor="wg-color">Widget Color</label>
+                  <input
+                      id="wg-color"
+                      type="color"
+                      value={widgetColor}
+                      onChange={handleColorChange}
+                      className="ios-color-picker"
+                  />
+                  <div
+                      className="color-preview"
+                      style={{ backgroundColor: widgetColor }}
+                  >
+                    {widgetColor}
+                  </div>
+                </div>
+
+                <div className="ios-setting-group">
+                  <label htmlFor="wg-wallpaper">Wallpaper</label>
+                  <input
+                      id="wg-wallpaper"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleWallpaperUpload}
+                      className="ios-wallpaper-upload"
+                  />
+                </div>
+
+                <button
+                    className="ios-close-settings"
+                    onClick={() => setShowSettings(false)}
+                >
+                  Close
+                </button>
+              </div>
+          )}
+
+          {/* Full-viewport clip */}
+          <div className="ios-grid-clip" ref={clipRef}>
+            <div
+                className="ios-wallpaper"
+                ref={wallpaperRef}
+                style={wallpaper ? { backgroundImage: `url(${wallpaper})` } : {}}
+            />
+
+            <div
+                role="grid"
+                aria-rowcount={rows}
+                aria-colcount={cols}
+                className={`ios-widget-grid ${className} ${
+                    showGrid ? "show-grid" : ""
+                }`}
+                style={{
+                  width: gridW,
+                  height: gridH,
+                  "--cell-width": `${cw}px`,
+                  "--cell-height": `${rh}px`,
+                  "--grid-gap": `${gap}px`,
+                  ...style,
+                }}
+            >
+              {children}
+            </div>
           </div>
         </div>
-      </div>
-    </GridCtx.Provider>
+      </GridCtx.Provider>
   );
 }
 
