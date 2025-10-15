@@ -167,8 +167,6 @@ function DailyScheduleWidget() {
               zIndex: 0
             }} />
           ))}
-          {/* Timeline vertical line (full height) */}
-          <div style={{ position: 'absolute', left: 0, top: 0, width: 2, height: '100%', background: '#6366f1', zIndex: 1 }} />
           {/* Now line */}
           <div style={{ position: 'absolute', left: 0, right: 0, top: timeToY(nowMinutes), height: 2, background: '#f87171', zIndex: 2, opacity: 0.7 }} />
           
