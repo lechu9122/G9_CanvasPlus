@@ -123,13 +123,14 @@
   border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 20px;
-  color: #991b1b;
+  color: #000; /* Black text for readability (Requirement 2) */
 }
 
 .modal-error-summary-title {
   font-weight: 600;
   margin: 0 0 8px 0;
   font-size: 14px;
+  color: #000; /* Black text for readability (Requirement 2) */
 }
 
 .modal-error-summary ul {
@@ -141,6 +142,7 @@
 .modal-error-summary li {
   font-size: 13px;
   margin-bottom: 4px;
+  color: #000; /* Black text for readability (Requirement 2) */
 }
 
 .modal-error-summary li:last-child {
@@ -203,7 +205,8 @@
   display: block;
   margin-top: 6px;
   font-size: 13px;
-  color: #dc2626;
+  color: #000; /* Black text for readability (Requirement 2) */
+  font-weight: 600; /* Make errors more prominent */
 }
 
 .modal-form-hint {

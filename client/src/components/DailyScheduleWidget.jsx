@@ -1,6 +1,8 @@
 
 import React from "react";
 import AddTaskModal from "./DailySchedule/AddTaskModal";
+import TaskCard from "./DailySchedule/TaskCard";
+import { computeTaskLayoutWithLanes } from "../utils/laneAllocator";
 
 function DailyScheduleWidget() {
   // Scroll to the next incomplete activity (not done, and in the future) on mount
@@ -99,6 +101,21 @@ function DailyScheduleWidget() {
     setActivities(acts => [...acts, newActivity]);
   };
 
+  // Compute lane layout for tasks to prevent visual overlap (Requirement 1)
+  const tasksWithLayout = React.useMemo(() => {
+    const dayMinutes = timelineEnd - timelineStart; // 1440 minutes for 24 hours
+    const containerWidth = timelineWidth - 80; // Available width for tasks
+    const gutterPx = 4; // Horizontal gutter between lanes
+
+    return computeTaskLayoutWithLanes(
+      activities,
+      dayMinutes,
+      containerWidth,
+      pxPerMinute,
+      gutterPx
+    );
+  }, [activities, timelineWidth, pxPerMinute, timelineStart, timelineEnd]);
+
   return (
     <div style={{ position: 'relative', height: windowHeight + 60, width: timelineWidth + 60, padding: 0, background: '#f9fafb', borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', overflow: 'hidden', border: '1.5px solid #e0e7ef' }}>
       {/* Add Activity Button */}
@@ -154,123 +171,56 @@ function DailyScheduleWidget() {
           <div style={{ position: 'absolute', left: 0, top: 0, width: 2, height: '100%', background: '#6366f1', zIndex: 1 }} />
           {/* Now line */}
           <div style={{ position: 'absolute', left: 0, right: 0, top: timeToY(nowMinutes), height: 2, background: '#f87171', zIndex: 2, opacity: 0.7 }} />
-          {/* Activities as blocks */}
-          {activities.map(act => {
-            const isLate = !act.done && nowMinutes > act.start + 10;
-            if (!(act.start >= timelineStart && act.start < timelineEnd)) return null;
+          
+          {/* Tasks with lane-based layout to prevent visual overlap */}
+          {tasksWithLayout.map(taskWithLayout => {
+            const isLate = !taskWithLayout.done && nowMinutes > taskWithLayout.start + 10;
+            if (!(taskWithLayout.start >= timelineStart && taskWithLayout.start < timelineEnd)) return null;
+
+            // Adjust layout to account for timeline offset
+            const adjustedLayout = {
+              ...taskWithLayout.layout,
+              leftPx: taskWithLayout.layout.leftPx + 28 // Offset from timeline vertical line
+            };
+
             return (
-              <div key={act.id} style={{
-                position: 'absolute',
-                left: 28,
-                top: timeToY(act.start),
-                height: Math.max(44, timeToY(act.end) - timeToY(act.start)),
-                width: timelineWidth - 80,
-                background: act.done ? '#e0f2fe' : isLate ? '#fecaca' : '#fbbf24',
-                color: act.done ? '#888' : isLate ? '#b91c1c' : '#222',
-                borderRadius: 7,
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0 8px',
-                fontWeight: 500,
-                fontSize: 13,
-                zIndex: 2,
-                border: isLate ? '2px solid #ef4444' : undefined
-              }} title={act.title}>
-                <button
-                  type="button"
-                  aria-label={act.done ? "Completed" : "Mark as done"}
-                  onMouseDown={() => {
-                    if (act.done) return;
-                    setHoldId(act.id);
-                    setHoldProgress(0);
-                    let progress = 0;
-                    holdInterval.current = setInterval(() => {
-                      progress += 100 / 9;
-                      setHoldProgress(progress);
-                    }, 100);
-                    holdTimeout.current = setTimeout(() => {
-                      clearInterval(holdInterval.current);
-                      setHoldProgress(100);
-                      handleTickActivity(act.id);
-                      setHoldId(null);
-                    }, 1000);
-                  }}
-                  onMouseUp={() => {
-                    clearTimeout(holdTimeout.current);
+              <TaskCard
+                key={taskWithLayout.id}
+                task={taskWithLayout}
+                layout={adjustedLayout}
+                isLate={isLate}
+                isHolding={holdId === taskWithLayout.id}
+                holdProgress={holdProgress}
+                nowMinutes={nowMinutes}
+                onTickActivity={handleTickActivity}
+                onHoldStart={(id) => {
+                  setHoldId(id);
+                  setHoldProgress(0);
+                  let progress = 0;
+                  holdInterval.current = setInterval(() => {
+                    progress += 100 / 9;
+                    setHoldProgress(progress);
+                  }, 100);
+                  holdTimeout.current = setTimeout(() => {
                     clearInterval(holdInterval.current);
-                    setHoldProgress(0);
+                    setHoldProgress(100);
+                    handleTickActivity(id);
                     setHoldId(null);
-                  }}
-                  onMouseLeave={() => {
-                    clearTimeout(holdTimeout.current);
-                    clearInterval(holdInterval.current);
-                    setHoldProgress(0);
-                    setHoldId(null);
-                  }}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    minWidth: 36,
-                    minHeight: 36,
-                    borderRadius: '50%',
-                    border: act.done ? '2.5px solid #22c55e' : '2.5px solid #cbd5e1',
-                    background: act.done ? '#22c55e' : '#fff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: act.done ? 'default' : 'pointer',
-                    marginRight: 10,
-                    position: 'relative',
-                    outline: 'none',
-                    transition: 'background 0.2s, border 0.2s',
-                    boxShadow: undefined,
-                    padding: 0,
-                    overflow: 'visible',
-                  }}
-                  disabled={act.done}
-                >
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={act.done ? '#fff' : '#22c55e'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: act.done ? 1 : 0.8, display: 'block' }}>
-                    <polyline points="5 11 9 15 15 7" />
-                  </svg>
-                  {holdId === act.id && !act.done && (
-                    <svg width="40" height="40" style={{ position: 'absolute', top: -4, left: -4, pointerEvents: 'none', zIndex: 1 }}>
-                      <circle
-                        cx="20" cy="20" r="17"
-                        stroke="#22c55e"
-                        strokeWidth="3.5"
-                        fill="none"
-                        strokeDasharray={2 * Math.PI * 17}
-                        strokeDashoffset={2 * Math.PI * 17 * (1 - holdProgress / 100)}
-                        style={{
-                          transition: 'stroke-dashoffset 0.1s linear',
-                          transform: 'rotate(-90deg)',
-                          transformOrigin: '50% 50%'
-                        }}
-                      />
-                    </svg>
-                  )}
-                </button>
-                <span style={{ fontWeight: 700, marginRight: 8 }}>
-                  {act.title}
-                  {isLate && (
-                    <span style={{
-                      color: '#b91c1c',
-                      background: '#fee2e2',
-                      borderRadius: 5,
-                      fontWeight: 800,
-                      fontSize: 11,
-                      marginLeft: 8,
-                      padding: '2px 7px',
-                      letterSpacing: 0.5,
-                      verticalAlign: 'middle',
-                    }}>Late</span>
-                  )}
-                </span>
-                <span style={{ marginLeft: 'auto', fontSize: 11, opacity: 0.8 }}>
-                  {`${String(Math.floor(act.start / 60)).padStart(2, '0')}:${String(act.start % 60).padStart(2, '0')}`} - {`${String(Math.floor(act.end / 60)).padStart(2, '0')}:${String(act.end % 60).padStart(2, '0')}`}
-                </span>
-              </div>
+                  }, 1000);
+                }}
+                onHoldEnd={() => {
+                  clearTimeout(holdTimeout.current);
+                  clearInterval(holdInterval.current);
+                  setHoldProgress(0);
+                  setHoldId(null);
+                }}
+                onHoldCancel={() => {
+                  clearTimeout(holdTimeout.current);
+                  clearInterval(holdInterval.current);
+                  setHoldProgress(0);
+                  setHoldId(null);
+                }}
+              />
             );
           })}
         </div>
