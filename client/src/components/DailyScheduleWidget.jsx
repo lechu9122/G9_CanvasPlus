@@ -1,6 +1,6 @@
 
 import React from "react";
-
+import AddTaskModal from "./DailySchedule/AddTaskModal";
 
 function DailyScheduleWidget() {
   // Scroll to the next incomplete activity (not done, and in the future) on mount
@@ -50,13 +50,11 @@ function DailyScheduleWidget() {
     { id: 10, title: 'Sleep', start: 1380, end: 1410, done: false }, // 23:00 - 23:30
   ]);
   const [showModal, setShowModal] = React.useState(false);
-  const [modalTitle, setModalTitle] = React.useState('');
-  const [modalTime, setModalTime] = React.useState('');
-  const [modalDuration, setModalDuration] = React.useState(30);
   const [holdId, setHoldId] = React.useState(null);
   const [holdProgress, setHoldProgress] = React.useState(0);
   const holdInterval = React.useRef(null);
   const holdTimeout = React.useRef(null);
+  const addTaskButtonRef = React.useRef(null);
 
   // --- Full 24-hour timeline, scrollable, with 4-hour window centered on now ---
   const now = new Date();
@@ -93,30 +91,26 @@ function DailyScheduleWidget() {
     }));
   };
 
-  const handleAddActivity = (e) => {
-    e.preventDefault();
-    const startTime = modalTime.split(':');
-    const start = parseInt(startTime[0]) * 60 + parseInt(startTime[1]);
-    const end = start + parseInt(modalDuration);
+  const handleAddActivity = (taskData) => {
     const newActivity = {
       id: Math.random(), // temporary ID, replace with proper ID generation
-      title: modalTitle,
-      start,
-      end,
-      done: false
+      ...taskData
     };
     setActivities(acts => [...acts, newActivity]);
-    setShowModal(false);
-    setModalTitle('');
-    setModalTime('');
-    setModalDuration(30);
   };
 
   return (
     <div style={{ position: 'relative', height: windowHeight + 60, width: timelineWidth + 60, padding: 0, background: '#f9fafb', borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', overflow: 'hidden', border: '1.5px solid #e0e7ef' }}>
       {/* Add Activity Button */}
       <div style={{ padding: '12px 14px 10px 14px', display: 'flex', justifyContent: 'flex-end' }}>
-        <button onClick={() => setShowModal(true)} style={{ background: '#22223b', color: '#fff', border: 'none', borderRadius: 7, padding: '6px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>Add Activity</button>
+        <button 
+          ref={addTaskButtonRef}
+          onClick={() => setShowModal(true)} 
+          style={{ background: '#22223b', color: '#fff', border: 'none', borderRadius: 7, padding: '6px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+          aria-label="Add new task"
+        >
+          Add Activity
+        </button>
       </div>
       {/* Timeline container with grid, scrollable, flex layout for time labels */}
       <div ref={timelineRef} style={{ display: 'flex', flexDirection: 'row', margin: '0px 14px 14px 0', height: windowHeight, width: timelineWidth + 80, borderRadius: 7, overflowY: 'auto', background: '#fff' }}>
@@ -281,33 +275,14 @@ function DailyScheduleWidget() {
           })}
         </div>
       </div>
-      {/* Modal for adding activity */}
-      {showModal && (
-        <div style={{
-          position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh',
-          background: 'rgba(0,0,0,0.18)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-          <div style={{ background: '#fff', borderRadius: 10, padding: 18, minWidth: 220, boxShadow: '0 4px 24px rgba(0,0,0,0.10)', position: 'relative' }}>
-            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: 8, right: 12, background: 'none', border: 'none', fontSize: 18, color: '#888', cursor: 'pointer' }} title="Close">✕</button>
-            <h3 style={{ margin: 0, marginBottom: 12, fontWeight: 700, fontSize: 15, color: '#22223b' }}>Add Activity</h3>
-            <form onSubmit={handleAddActivity}>
-              <div style={{ marginBottom: 10 }}>
-                <label htmlFor="activity-title" style={{ fontSize: 11, fontWeight: 600, color: '#22223b', marginBottom: 3, display: 'block' }}>Title</label>
-                <input id="activity-title" value={modalTitle} onChange={e => setModalTitle(e.target.value)} required placeholder="Activity title..." style={{ width: '100%', padding: '6px 8px', borderRadius: 5, border: '1.5px solid #e5e7eb', fontSize: 12, outline: 'none' }} />
-              </div>
-              <div style={{ marginBottom: 10 }}>
-                <label htmlFor="start-time" style={{ fontSize: 11, fontWeight: 600, color: '#22223b', marginBottom: 3, display: 'block' }}>Start Time</label>
-                <input id="start-time" type="time" value={modalTime} onChange={e => setModalTime(e.target.value)} required style={{ width: '100%', padding: '6px 8px', borderRadius: 5, border: '1.5px solid #e5e7eb', fontSize: 12, outline: 'none' }} />
-              </div>
-              <div style={{ marginBottom: 14 }}>
-                <label htmlFor="duration-minutes" style={{ fontSize: 11, fontWeight: 600, color: '#22223b', marginBottom: 3, display: 'block' }}>Duration (minutes)</label>
-                <input id="duration-minutes" type="number" min={5} max={180} step={5} value={modalDuration} onChange={e => setModalDuration(e.target.value)} required style={{ width: '100%', padding: '6px 8px', borderRadius: 5, border: '1.5px solid #e5e7eb', fontSize: 12, outline: 'none' }} />
-              </div>
-              <button type="submit" style={{ width: '100%', padding: '8px 0', borderRadius: 7, background: '#22223b', color: '#fff', border: 'none', fontWeight: 700, fontSize: 13, letterSpacing: 0.2, cursor: 'pointer', transition: 'background 0.2s' }}>Add</button>
-            </form>
-          </div>
-        </div>
-      )}
+
+      {/* Add Task Modal */}
+      <AddTaskModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSubmit={handleAddActivity}
+        triggerRef={addTaskButtonRef}
+      />
     </div>
   );
 }
