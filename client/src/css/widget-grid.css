@@ -474,3 +474,122 @@
 .ios-widget-grid-container {
   transform: none !important;
 }
+
+
+/* Add these styles to your existing client/css/widget-grid.css */
+
+/* Resize handles */
+.ios-resize-handle {
+  position: absolute;
+  z-index: 100;
+  width: 12px;
+  height: 12px;
+  background: var(--accent-color, #007AFF);
+  border: 2px solid white;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.ios-widget:hover .ios-resize-handle,
+.ios-widget:focus-within .ios-resize-handle {
+  opacity: 1;
+}
+
+.ios-resize-se {
+  bottom: -6px;
+  right: -6px;
+  cursor: nwse-resize;
+}
+
+.ios-resize-ne {
+  top: -6px;
+  right: -6px;
+  cursor: nesw-resize;
+}
+
+.ios-resize-sw {
+  bottom: -6px;
+  left: -6px;
+  cursor: nesw-resize;
+}
+
+.ios-resize-nw {
+  top: -6px;
+  left: -6px;
+  cursor: nwse-resize;
+}
+
+/* Active resize state */
+.ios-resize-handle:active {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* Ghost widget during resize */
+.ios-widget-ghost {
+  position: absolute;
+  border: 2px dashed;
+  border-radius: 16px;
+  background: rgba(0, 122, 255, 0.1);
+  pointer-events: none;
+  z-index: 999;
+  transition: none;
+}
+
+/* Widget being dragged/resized */
+.ios-widget.dragging {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Prevent text selection during drag/resize */
+body.dragging,
+body.resizing {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Grid guidelines (optional enhancement) */
+.ios-widget-grid.show-grid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent calc(var(--cell-height) + var(--grid-gap) - 1px),
+      rgba(255, 255, 255, 0.1) calc(var(--cell-height) + var(--grid-gap) - 1px),
+      rgba(255, 255, 255, 0.1) calc(var(--cell-height) + var(--grid-gap))
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent calc(var(--cell-width) + var(--grid-gap) - 1px),
+      rgba(255, 255, 255, 0.1) calc(var(--cell-width) + var(--grid-gap) - 1px),
+      rgba(255, 255, 255, 0.1) calc(var(--cell-width) + var(--grid-gap))
+    );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ios-widget-grid.show-grid:hover::before,
+.ios-widget.dragging ~ .ios-widget-grid::before {
+  opacity: 1;
+}
+
+/* Accessibility: Focus styles for resize handles */
+.ios-resize-handle:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+  opacity: 1;
+}
