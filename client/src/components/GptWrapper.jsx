@@ -1,33 +1,48 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useRef } from "react";
 import "../App.css";
 import "../css/GptWrapper.css";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(
+  supabaseUrl,      // or REACT_APP_SUPABASE_URL
+  supabaseKey       // or REACT_APP_SUPABASE_ANON_KEY
+);
+
+
 
 // Pretty-print helper (unchanged)
 const stringifyPretty = (obj) => {
-  if (obj == null) return '';
-  if (typeof obj === 'string') {
+  if (obj == null) return "";
+  if (typeof obj === "string") {
     try {
       const parsed = JSON.parse(obj);
-      if (typeof parsed === 'string') return parsed;
+      if (typeof parsed === "string") return parsed;
     } catch {}
-    return obj.replaceAll('\\r\\n', '\n').replaceAll('\\n', '\n').replaceAll('\\t', '\t');
+    return obj
+      .replaceAll("\\r\\n", "\n")
+      .replaceAll("\\n", "\n")
+      .replaceAll("\\t", "\t");
   }
-  try { return JSON.stringify(obj, null, 2); } catch { return String(obj); }
+  try {
+    return JSON.stringify(obj, null, 2);
+  } catch {
+    return String(obj);
+  }
 };
 
 export default function GptWrapper() {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [responseData, setResponseData] = useState(null); // kept for compatibility
   const [error, setError] = useState(null);
-  const [copied, setCopied] = useState(false); // kept
-  const [history, setHistory] = useState([]);  // [{ role: 'user'|'assistant', content: string }]
+  const [history, setHistory] = useState([]); // [{ role: 'user'|'assistant', content: string }]
 
   // Load saved history
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('gpt_history');
+      const raw = localStorage.getItem("gpt_history");
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) setHistory(parsed);
@@ -37,24 +52,16 @@ export default function GptWrapper() {
 
   // Persist history
   useEffect(() => {
-    try { localStorage.setItem('gpt_history', JSON.stringify(history)); } catch {}
-  }, [history]);
-
-  const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(stringifyPretty(responseData));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch (e) {
-      console.error('Copy failed', e);
-    }
-  };
+      localStorage.setItem("gpt_history", JSON.stringify(history));
+    } catch {}
+  }, [history]);
 
   const handleReset = () => {
     setHistory([]);
     setResponseData(null);
     setError(null);
-    setInput('');
+    setInput("");
   };
 
   // Auto-grow textarea
@@ -62,9 +69,9 @@ export default function GptWrapper() {
   const autoResize = () => {
     const el = taRef.current;
     if (!el) return;
-    el.style.height = 'auto';
+    el.style.height = "auto";
     const maxPx = 8 * 28 + 28; // cap ~8 lines
-    el.style.height = Math.min(el.scrollHeight, maxPx) + 'px';
+    el.style.height = Math.min(el.scrollHeight, maxPx) + "px";
   };
   useEffect(autoResize, [input]);
 
@@ -78,27 +85,51 @@ export default function GptWrapper() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
+
     setLoading(true);
     setError(null);
     setResponseData(null);
 
-    const nextHistoryUser = [...history, { role: 'user', content: input }];
+    const nextHistoryUser = [...history, { role: "user", content: input }];
     const recentHistory = nextHistoryUser.slice(-8);
 
     try {
-      const response = await axios.post(
-        'http://localhost:8080/api/ai/complete',        // unchanged endpoint
-        { question: input, history: recentHistory },    // unchanged payload
-        { headers: { 'Content-Type': 'text/plain' } }   // unchanged header
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession(); // Supabase v2
+
+      if (sessionError || !session?.access_token) {
+        throw new Error("User not authenticated");
+      }
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/chat-response`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          prompt: input,
+          history: recentHistory,
+        }),
+      });
+
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+
+      const data = await res.json();
+      const assistantText = stringifyPretty(
+        data.result || "No response from model."
       );
 
-      setResponseData(response.data); // kept
-
-      const assistantText = stringifyPretty(response.data);
-      setHistory([...nextHistoryUser, { role: 'assistant', content: assistantText }]);
-      setInput('');
+      setResponseData(assistantText);
+      setHistory([
+        ...nextHistoryUser,
+        { role: "assistant", content: assistantText },
+      ]);
+      setInput("");
     } catch (err) {
-      setError(err.response?.data?.message || 'Something went wrong.');
+      setError(err.message || "Something went wrong.");
       setHistory(nextHistoryUser);
     } finally {
       setLoading(false);
@@ -127,14 +158,14 @@ export default function GptWrapper() {
         )}
 
         {history.map((m, idx) => {
-          const isUser = m.role === 'user';
+          const isUser = m.role === "user";
           return (
             <div
               key={idx}
-              className={`gptw-row ${isUser ? 'gptw-right' : 'gptw-left'}`}
+              className={`gptw-row ${isUser ? "gptw-right" : "gptw-left"}`}
             >
               {/* USER = right bubble, BOT = plain left text */}
-              <div className={`gptw-bubble ${isUser ? 'user' : 'bot'}`}>
+              <div className={`gptw-bubble ${isUser ? "user" : "bot"}`}>
                 {m.content}
               </div>
 
@@ -147,7 +178,9 @@ export default function GptWrapper() {
 
       {/* Composer sticks to bottom of wrapper */}
       <form onSubmit={handleSubmit} className="gptw-composer">
-        <label htmlFor="gpt-input" className="sr-only">Your question</label>
+        <label htmlFor="gpt-input" className="sr-only">
+          Your question
+        </label>
         <textarea
           id="gpt-input"
           ref={taRef}
@@ -178,7 +211,7 @@ export default function GptWrapper() {
             className="gptw-btn primary"
             aria-label="Submit message"
           >
-            {loading ? 'Submitting…' : 'Submit'}
+            {loading ? "Submitting…" : "Submit"}
           </button>
         </div>
       </form>

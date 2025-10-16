@@ -4,7 +4,8 @@
   "scripts": {
     "start:backend": "bash -c 'cd server && export $(grep -v \"^#\" .env | xargs) && ./mvnw spring-boot:run'",
     "start:client": "npm --workspace client run dev",
-    "start": "concurrently \"npm run start:client\" \"npm run start:backend\""
+    "start": "concurrently \"npm run start:client\" \"npm run start:backend\"",
+    "test": "vitest"
   },
   "workspaces": [
     "client"
@@ -12,8 +13,11 @@
   "devDependencies": {
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.7.2",
     "concurrently": "9.2.0",
-    "vitest": "^3.2.4"
+    "jest-fetch-mock": "^3.0.3",
+    "vitest": "^3.2.4",
+    "vitest-fetch-mock": "^0.4.5"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.75.0",

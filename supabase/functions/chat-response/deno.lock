@@ -1,0 +1,19 @@
+{
+  "version": "5",
+  "specifiers": {
+    "jsr:@supabase/functions-js@*": "2.5.0"
+  },
+  "jsr": {
+    "@supabase/functions-js@2.5.0": {
+      "integrity": "c48e3fc5da1510ce6dab34af3fc49cd637ea7b721d92faffd0545cbdcc548430"
+    }
+  },
+  "redirects": {
+    "https://deno.land/x/dotenv/load.ts": "https://deno.land/x/dotenv@v3.2.2/load.ts"
+  },
+  "remote": {
+    "https://deno.land/x/dotenv@v3.2.2/load.ts": "cbd76a0aee01aad8d09222afaa1dd04b84d9d3e44637503b01bf77a91df9e041",
+    "https://deno.land/x/dotenv@v3.2.2/mod.ts": "077b48773de9205266a0b44c3c3a3c3083449ed64bb0b6cc461b95720678d38e",
+    "https://deno.land/x/dotenv@v3.2.2/util.ts": "693730877b13f8ead2b79b2aa31e2a0652862f7dc0c5f6d2f313f4d39c7b7670"
+  }
+}
