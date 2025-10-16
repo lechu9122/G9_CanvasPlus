@@ -13,6 +13,7 @@ import {
 } from "../../api/preferences.js";
 // NOTE: adjust the import path to your supabase client if needed
 import { supabase } from "../../auth/supabaseClient.js";
+import { useSignOut } from "../../hooks/useSignOut.js";
 
 const GridCtx = React.createContext(null);
 
@@ -44,6 +45,9 @@ export default function WidgetGrid({
   const [wallpaper, setWallpaper] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [user, setUser] = useState(null);
+  
+  // Logout hook
+  const { signOut, isLoading: isLoggingOut } = useSignOut();
 
   // Derived cell sizes so the grid fills the viewport area exactly
   const [cw, setCw] = useState(cellW);
@@ -254,6 +258,21 @@ export default function WidgetGrid({
               <div className="ios-settings-panel">
                 <h3>Customize Widgets</h3>
 
+                {/* User Info Section */}
+                {user && (
+                  <div className="ios-setting-group ios-user-info">
+                    <div className="ios-user-avatar">
+                      {user.email?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    <div className="ios-user-details">
+                      <div className="ios-user-name">
+                        {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+                      </div>
+                      <div className="ios-user-email">{user.email}</div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="ios-setting-group">
                   <label htmlFor="wg-color">Widget Color</label>
                   <input
@@ -281,6 +300,56 @@ export default function WidgetGrid({
                       className="ios-wallpaper-upload"
                   />
                 </div>
+
+                {/* Logout Button */}
+                {user && (
+                  <button
+                    className="ios-logout-button"
+                    onClick={signOut}
+                    disabled={isLoggingOut}
+                    aria-label="Log out"
+                  >
+                    <svg
+                      className="ios-logout-icon"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M16 17L21 12L16 7"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M21 12H9"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    {isLoggingOut ? (
+                      <>
+                        <span className="ios-logout-spinner" aria-hidden="true"></span>
+                        <span>Logging out...</span>
+                      </>
+                    ) : (
+                      <span>Log Out</span>
+                    )}
+                  </button>
+                )}
 
                 <button
                     className="ios-close-settings"
