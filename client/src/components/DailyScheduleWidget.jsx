@@ -1,6 +1,8 @@
 
 import React from "react";
-
+import AddTaskModal from "./DailySchedule/AddTaskModal";
+import TaskCard from "./DailySchedule/TaskCard";
+import { computeTaskLayoutWithLanes } from "../utils/laneAllocator";
 
 function DailyScheduleWidget() {
   // Scroll to the next incomplete activity (not done, and in the future) on mount
@@ -50,13 +52,11 @@ function DailyScheduleWidget() {
     { id: 10, title: 'Sleep', start: 1380, end: 1410, done: false }, // 23:00 - 23:30
   ]);
   const [showModal, setShowModal] = React.useState(false);
-  const [modalTitle, setModalTitle] = React.useState('');
-  const [modalTime, setModalTime] = React.useState('');
-  const [modalDuration, setModalDuration] = React.useState(30);
   const [holdId, setHoldId] = React.useState(null);
   const [holdProgress, setHoldProgress] = React.useState(0);
   const holdInterval = React.useRef(null);
   const holdTimeout = React.useRef(null);
+  const addTaskButtonRef = React.useRef(null);
 
   // --- Full 24-hour timeline, scrollable, with 4-hour window centered on now ---
   const now = new Date();
@@ -93,30 +93,41 @@ function DailyScheduleWidget() {
     }));
   };
 
-  const handleAddActivity = (e) => {
-    e.preventDefault();
-    const startTime = modalTime.split(':');
-    const start = parseInt(startTime[0]) * 60 + parseInt(startTime[1]);
-    const end = start + parseInt(modalDuration);
+  const handleAddActivity = (taskData) => {
     const newActivity = {
       id: Math.random(), // temporary ID, replace with proper ID generation
-      title: modalTitle,
-      start,
-      end,
-      done: false
+      ...taskData
     };
     setActivities(acts => [...acts, newActivity]);
-    setShowModal(false);
-    setModalTitle('');
-    setModalTime('');
-    setModalDuration(30);
   };
+
+  // Compute lane layout for tasks to prevent visual overlap (Requirement 1)
+  const tasksWithLayout = React.useMemo(() => {
+    const dayMinutes = timelineEnd - timelineStart; // 1440 minutes for 24 hours
+    const containerWidth = timelineWidth - 80; // Available width for tasks
+    const gutterPx = 4; // Horizontal gutter between lanes
+
+    return computeTaskLayoutWithLanes(
+      activities,
+      dayMinutes,
+      containerWidth,
+      pxPerMinute,
+      gutterPx
+    );
+  }, [activities, timelineWidth, pxPerMinute, timelineStart, timelineEnd]);
 
   return (
     <div style={{ position: 'relative', height: windowHeight + 60, width: timelineWidth + 60, padding: 0, background: '#f9fafb', borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', overflow: 'hidden', border: '1.5px solid #e0e7ef' }}>
       {/* Add Activity Button */}
       <div style={{ padding: '12px 14px 10px 14px', display: 'flex', justifyContent: 'flex-end' }}>
-        <button onClick={() => setShowModal(true)} style={{ background: '#22223b', color: '#fff', border: 'none', borderRadius: 7, padding: '6px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>Add Activity</button>
+        <button 
+          ref={addTaskButtonRef}
+          onClick={() => setShowModal(true)} 
+          style={{ background: '#22223b', color: '#fff', border: 'none', borderRadius: 7, padding: '6px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+          aria-label="Add new task"
+        >
+          Add Activity
+        </button>
       </div>
       {/* Timeline container with grid, scrollable, flex layout for time labels */}
       <div ref={timelineRef} style={{ display: 'flex', flexDirection: 'row', margin: '0px 14px 14px 0', height: windowHeight, width: timelineWidth + 80, borderRadius: 7, overflowY: 'auto', background: '#fff' }}>
@@ -156,158 +167,70 @@ function DailyScheduleWidget() {
               zIndex: 0
             }} />
           ))}
-          {/* Timeline vertical line (full height) */}
-          <div style={{ position: 'absolute', left: 0, top: 0, width: 2, height: '100%', background: '#6366f1', zIndex: 1 }} />
           {/* Now line */}
           <div style={{ position: 'absolute', left: 0, right: 0, top: timeToY(nowMinutes), height: 2, background: '#f87171', zIndex: 2, opacity: 0.7 }} />
-          {/* Activities as blocks */}
-          {activities.map(act => {
-            const isLate = !act.done && nowMinutes > act.start + 10;
-            if (!(act.start >= timelineStart && act.start < timelineEnd)) return null;
+          
+          {/* Tasks with lane-based layout to prevent visual overlap */}
+          {tasksWithLayout.map(taskWithLayout => {
+            const isLate = !taskWithLayout.done && nowMinutes > taskWithLayout.start + 10;
+            if (!(taskWithLayout.start >= timelineStart && taskWithLayout.start < timelineEnd)) return null;
+
+            // Adjust layout to account for timeline offset
+            const adjustedLayout = {
+              ...taskWithLayout.layout,
+              leftPx: taskWithLayout.layout.leftPx + 28 // Offset from timeline vertical line
+            };
+
             return (
-              <div key={act.id} style={{
-                position: 'absolute',
-                left: 28,
-                top: timeToY(act.start),
-                height: Math.max(44, timeToY(act.end) - timeToY(act.start)),
-                width: timelineWidth - 80,
-                background: act.done ? '#e0f2fe' : isLate ? '#fecaca' : '#fbbf24',
-                color: act.done ? '#888' : isLate ? '#b91c1c' : '#222',
-                borderRadius: 7,
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0 8px',
-                fontWeight: 500,
-                fontSize: 13,
-                zIndex: 2,
-                border: isLate ? '2px solid #ef4444' : undefined
-              }} title={act.title}>
-                <button
-                  type="button"
-                  aria-label={act.done ? "Completed" : "Mark as done"}
-                  onMouseDown={() => {
-                    if (act.done) return;
-                    setHoldId(act.id);
-                    setHoldProgress(0);
-                    let progress = 0;
-                    holdInterval.current = setInterval(() => {
-                      progress += 100 / 9;
-                      setHoldProgress(progress);
-                    }, 100);
-                    holdTimeout.current = setTimeout(() => {
-                      clearInterval(holdInterval.current);
-                      setHoldProgress(100);
-                      handleTickActivity(act.id);
-                      setHoldId(null);
-                    }, 1000);
-                  }}
-                  onMouseUp={() => {
-                    clearTimeout(holdTimeout.current);
+              <TaskCard
+                key={taskWithLayout.id}
+                task={taskWithLayout}
+                layout={adjustedLayout}
+                isLate={isLate}
+                isHolding={holdId === taskWithLayout.id}
+                holdProgress={holdProgress}
+                nowMinutes={nowMinutes}
+                onTickActivity={handleTickActivity}
+                onHoldStart={(id) => {
+                  setHoldId(id);
+                  setHoldProgress(0);
+                  let progress = 0;
+                  holdInterval.current = setInterval(() => {
+                    progress += 100 / 9;
+                    setHoldProgress(progress);
+                  }, 100);
+                  holdTimeout.current = setTimeout(() => {
                     clearInterval(holdInterval.current);
-                    setHoldProgress(0);
+                    setHoldProgress(100);
+                    handleTickActivity(id);
                     setHoldId(null);
-                  }}
-                  onMouseLeave={() => {
-                    clearTimeout(holdTimeout.current);
-                    clearInterval(holdInterval.current);
-                    setHoldProgress(0);
-                    setHoldId(null);
-                  }}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    minWidth: 36,
-                    minHeight: 36,
-                    borderRadius: '50%',
-                    border: act.done ? '2.5px solid #22c55e' : '2.5px solid #cbd5e1',
-                    background: act.done ? '#22c55e' : '#fff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: act.done ? 'default' : 'pointer',
-                    marginRight: 10,
-                    position: 'relative',
-                    outline: 'none',
-                    transition: 'background 0.2s, border 0.2s',
-                    boxShadow: undefined,
-                    padding: 0,
-                    overflow: 'visible',
-                  }}
-                  disabled={act.done}
-                >
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={act.done ? '#fff' : '#22c55e'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: act.done ? 1 : 0.8, display: 'block' }}>
-                    <polyline points="5 11 9 15 15 7" />
-                  </svg>
-                  {holdId === act.id && !act.done && (
-                    <svg width="40" height="40" style={{ position: 'absolute', top: -4, left: -4, pointerEvents: 'none', zIndex: 1 }}>
-                      <circle
-                        cx="20" cy="20" r="17"
-                        stroke="#22c55e"
-                        strokeWidth="3.5"
-                        fill="none"
-                        strokeDasharray={2 * Math.PI * 17}
-                        strokeDashoffset={2 * Math.PI * 17 * (1 - holdProgress / 100)}
-                        style={{
-                          transition: 'stroke-dashoffset 0.1s linear',
-                          transform: 'rotate(-90deg)',
-                          transformOrigin: '50% 50%'
-                        }}
-                      />
-                    </svg>
-                  )}
-                </button>
-                <span style={{ fontWeight: 700, marginRight: 8 }}>
-                  {act.title}
-                  {isLate && (
-                    <span style={{
-                      color: '#b91c1c',
-                      background: '#fee2e2',
-                      borderRadius: 5,
-                      fontWeight: 800,
-                      fontSize: 11,
-                      marginLeft: 8,
-                      padding: '2px 7px',
-                      letterSpacing: 0.5,
-                      verticalAlign: 'middle',
-                    }}>Late</span>
-                  )}
-                </span>
-                <span style={{ marginLeft: 'auto', fontSize: 11, opacity: 0.8 }}>
-                  {`${String(Math.floor(act.start / 60)).padStart(2, '0')}:${String(act.start % 60).padStart(2, '0')}`} - {`${String(Math.floor(act.end / 60)).padStart(2, '0')}:${String(act.end % 60).padStart(2, '0')}`}
-                </span>
-              </div>
+                  }, 1000);
+                }}
+                onHoldEnd={() => {
+                  clearTimeout(holdTimeout.current);
+                  clearInterval(holdInterval.current);
+                  setHoldProgress(0);
+                  setHoldId(null);
+                }}
+                onHoldCancel={() => {
+                  clearTimeout(holdTimeout.current);
+                  clearInterval(holdInterval.current);
+                  setHoldProgress(0);
+                  setHoldId(null);
+                }}
+              />
             );
           })}
         </div>
       </div>
-      {/* Modal for adding activity */}
-      {showModal && (
-        <div style={{
-          position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh',
-          background: 'rgba(0,0,0,0.18)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-          <div style={{ background: '#fff', borderRadius: 10, padding: 18, minWidth: 220, boxShadow: '0 4px 24px rgba(0,0,0,0.10)', position: 'relative' }}>
-            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: 8, right: 12, background: 'none', border: 'none', fontSize: 18, color: '#888', cursor: 'pointer' }} title="Close">✕</button>
-            <h3 style={{ margin: 0, marginBottom: 12, fontWeight: 700, fontSize: 15, color: '#22223b' }}>Add Activity</h3>
-            <form onSubmit={handleAddActivity}>
-              <div style={{ marginBottom: 10 }}>
-                <label htmlFor="activity-title" style={{ fontSize: 11, fontWeight: 600, color: '#22223b', marginBottom: 3, display: 'block' }}>Title</label>
-                <input id="activity-title" value={modalTitle} onChange={e => setModalTitle(e.target.value)} required placeholder="Activity title..." style={{ width: '100%', padding: '6px 8px', borderRadius: 5, border: '1.5px solid #e5e7eb', fontSize: 12, outline: 'none' }} />
-              </div>
-              <div style={{ marginBottom: 10 }}>
-                <label htmlFor="start-time" style={{ fontSize: 11, fontWeight: 600, color: '#22223b', marginBottom: 3, display: 'block' }}>Start Time</label>
-                <input id="start-time" type="time" value={modalTime} onChange={e => setModalTime(e.target.value)} required style={{ width: '100%', padding: '6px 8px', borderRadius: 5, border: '1.5px solid #e5e7eb', fontSize: 12, outline: 'none' }} />
-              </div>
-              <div style={{ marginBottom: 14 }}>
-                <label htmlFor="duration-minutes" style={{ fontSize: 11, fontWeight: 600, color: '#22223b', marginBottom: 3, display: 'block' }}>Duration (minutes)</label>
-                <input id="duration-minutes" type="number" min={5} max={180} step={5} value={modalDuration} onChange={e => setModalDuration(e.target.value)} required style={{ width: '100%', padding: '6px 8px', borderRadius: 5, border: '1.5px solid #e5e7eb', fontSize: 12, outline: 'none' }} />
-              </div>
-              <button type="submit" style={{ width: '100%', padding: '8px 0', borderRadius: 7, background: '#22223b', color: '#fff', border: 'none', fontWeight: 700, fontSize: 13, letterSpacing: 0.2, cursor: 'pointer', transition: 'background 0.2s' }}>Add</button>
-            </form>
-          </div>
-        </div>
-      )}
+
+      {/* Add Task Modal */}
+      <AddTaskModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSubmit={handleAddActivity}
+        triggerRef={addTaskButtonRef}
+      />
     </div>
   );
 }
