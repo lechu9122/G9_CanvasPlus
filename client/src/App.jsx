@@ -12,6 +12,7 @@ import DailyScheduleWidget from "./components/DailyScheduleWidget.jsx";
 import TodoWidget from "./components/TodoWidget.jsx";
 import NotesWidget from './components/NotesWidget';
 import CanvasWidget from "./components/CanvasWidget.jsx";
+import LinkVaultWidget from "./components/LinkVaultWidget.jsx";
 
 const BOUNCE_TIME = 800; // ms
 const SIGN_IN_BUTTON_STYLE = {
@@ -166,6 +167,7 @@ export default function App() {
           {w.id === "canvas" && <CanvasWidget />}
           {w.id === "schedule" && <DailyScheduleWidget />}
           {w.id === "notes" && <NotesWidget />}
+          {w.id === "linkVault" && <LinkVaultWidget />}
         </Widget>
       ))}
     </WidgetGrid>

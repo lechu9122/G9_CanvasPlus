@@ -14,6 +14,7 @@ const WIDGET_CONSTRAINTS = {
   gptWrapper: { minW: 4, minH: 3, maxW: 10, maxH: 8 },
   search: { minW: 2, minH: 1, maxW: 8, maxH: 2 },
   canvas: { minW: 2, minH: 3, maxW: 6, maxH: 8 },
+  linkVault: { minW: 2, minH: 3, maxW: 6, maxH: 8 },
 };
 
 // Time to debounce layout saves
@@ -29,7 +30,8 @@ const DEFAULT_LAYOUTS = {
     { id: "notes", title: "Notes", col: 0, row: 2, w: 3, h: 3, minW: 2, minH: 2 },
     { id: "gptWrapper", title: "ChatGPT", col: 3, row: 4, w: 6, h: 3, minW: 4, minH: 3 },
     { id: "search", title: "Search", col: 7, row: 0, w: 4, h: 1, minW: 3, minH: 1 },
-    { id: "canvas", title: "Canvas Tasks", col: 9, row: 3, w: 3, h: 4, minW: 3, minH: 3 },
+    { id: "canvas", title: "Canvas Tasks", col: 9, row: 4, w: 3, h: 4, minW: 3, minH: 3 },
+    { id: "linkVault", title: "Link Vault", col: 12, row: 4, w: 3, h: 4, minW: 3, minH: 3 },
   ],
   md: [
     { id: "weather", title: "Weather", col: 0, row: 0, w: 2, h: 2, minW: 2, minH: 2 },
@@ -41,6 +43,7 @@ const DEFAULT_LAYOUTS = {
     { id: "gptWrapper", title: "ChatGPT", col: 2, row: 3, w: 5, h: 3, minW: 4, minH: 3 },
     { id: "search", title: "Search", col: 6, row: 0, w: 3, h: 1, minW: 2, minH: 1 },
     { id: "canvas", title: "Canvas Tasks", col: 4, row: 7, w: 3, h: 4, minW: 2, minH: 3 },
+    { id: "linkVault", title: "Link Vault", col: 6, row: 7, w: 3, h: 4, minW: 2, minH: 3 },
   ],
   sm: [
     { id: "weather", title: "Weather", col: 0, row: 0, w: 2, h: 2, minW: 2, minH: 2 },
@@ -52,6 +55,7 @@ const DEFAULT_LAYOUTS = {
     { id: "gptWrapper", title: "ChatGPT", col: 0, row: 5, w: 4, h: 3, minW: 3, minH: 3 },
     { id: "search", title: "Search", col: 2, row: 0, w: 2, h: 1, minW: 2, minH: 1 },
     { id: "canvas", title: "Canvas Tasks", col: 3, row: 7, w: 3, h: 3, minW: 2, minH: 3 },
+    { id: "linkVault", title: "Link Vault", col: 3, row: 5, w: 3, h: 3, minW: 2, minH: 3 },
   ],
   xs: [
     { id: "weather", title: "Weather", col: 0, row: 0, w: 2, h: 2, minW: 2, minH: 2 },
@@ -63,6 +67,7 @@ const DEFAULT_LAYOUTS = {
     { id: "gptWrapper", title: "ChatGPT", col: 0, row: 5, w: 3, h: 3, minW: 2, minH: 3 },
     { id: "search", title: "Search", col: 0, row: 0, w: 2, h: 1, minW: 2, minH: 1 },
     { id: "canvas", title: "Canvas Tasks", col: 2, row: 7, w: 2, h: 3, minW: 2, minH: 3 },
+    { id: "linkVault", title: "Link Vault", col: 2, row: 5, w: 2, h: 3, minW: 2, minH: 3 },
   ],
 };
 
