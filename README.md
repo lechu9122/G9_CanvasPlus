@@ -13,7 +13,8 @@ This project is associated with the University of Auckland SOFTENG 310.
 | Path         | Purpose                     |
 | ------------ | --------------------------- |
 | `client/`    | React/Vite front‑end source |
-| `server/`    | Spring Boot back‑end source |
+| `server/`    | Spring Boot back‑end source (currently dormant) |
+| `supabase/`  | Edge function for AI backend calls for functionality |
 | `.gitignore` | Ignore rules                |
 
 ### Client
@@ -25,22 +26,12 @@ reloading and production builds.
 
 ### Server
 
-The `server` folder is a Spring Boot application. It exposes REST
-endpoints that the front‑end consumes. Endpoints include:
+The logic from the spring boot server backend was moved to supabase, but the skeleton code was kept for the potential implementations.
 
-- `GET /api/ai/ping` -- returns `ok` to indicate the AI service is
-  alive
-- `POST /api/ai/complete` -- accepts a plain‑text prompt and returns a
-  completion from
-  OpenAI
-- `GET /api/db/ping` -- pings the database and returns the server time
-  and DB
-  user.
+### Supabase
 
-The server uses environment variables for secrets such as the OpenAI API
-key and Supabase credentials; these are defined in a `.env` file and
-referenced in
-`server/src/main/resources/application.properties`
+The `supabase` folder contains backend logic and API calls that enable AI-powered functionality for the client.
+It handles the connection between the server, the Supabase database, and the OpenAI API — allowing the app to store data, retrieve tasks, and generate GPT-based insights.
 
 ## Prerequisites
 
@@ -67,6 +58,8 @@ The frontend requires the following environment variables. Placeholders and exam
 
 - `VITE_GOOGLE_CLIENT_ID` -- Google OAuth client ID for authentication.
 - `VITE_GCAL_TOKEN_STORAGE_KEY` -- key used to store Google Calendar tokens in local storage.
+- `SUPABASE_URL` -- the URL of your Supabase instance.
+- `SUPABASE_ANON_KEY` -- the anonymous public API key for Supabase.
 
 ## Setup
 
