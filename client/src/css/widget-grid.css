@@ -37,11 +37,15 @@
 
 /* New inner clip layer holds wallpaper + grid with rounded corners */
 .ios-grid-clip {
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;             /* only this layer clips */
-  isolation: isolate;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Add this if missing */
 }
 
 .ios-wallpaper {
@@ -67,9 +71,11 @@
 
 .ios-widget-grid {
   position: relative;
-  border-radius: 16px;
-  background-color: transparent;
-  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols, 12), var(--cell-width));
+  grid-template-rows: repeat(var(--grid-rows, 8), var(--cell-height));
+  gap: var(--grid-gap);
+  /* Remove any left/right positioning that might exist */
 }
 
 .ios-widget-grid.show-grid {
